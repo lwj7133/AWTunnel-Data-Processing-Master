@@ -8,8 +8,6 @@ from scipy import interpolate
 from pandas.api.types import is_numeric_dtype
 import requests
 import re
-
-# 在文件顶部添加必要的导入
 import streamlit as st
 
 # 在主要内容之前添加以下代码
@@ -39,14 +37,14 @@ st.markdown(
 st.sidebar.markdown("""
     <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #f6f8fa, #e9ecef); border-radius: 15px; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);">
         <h4 style="color: #1a5f7a; margin: 0 0 5px 0; font-weight: bold; font-family: 'Arial', sans-serif;">🛫✨ Airfoil Wind Tunnel Data Processing Master ✨🛫</h4>
-        <p style="color: #3498db; font-size: 0.9em; font-style: italic; margin: 0 0 5px 0;">Professional / Efficient / Precise</p>
+        <p style="color: #3498db; font-size: 0.9em; font-style: italic; margin: 0 0 5px 0;">Professional / Efficient / Scientific</p>
         <hr style="border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0)); margin: 0;">
         <p style="color: #34495e; font-size: 1.1em; margin: 10px 0; font-family: 'Microsoft YaHei', sans-serif;">👨‍💻 Developed By LuWeiJing</p>
         <p style="color: #2c3e50; font-size: 1em; margin: 5px 0;">🚀 Version: 1.0.0 | 📅 September 2024</p>
         <p style="color: #546e7a; font-size: 0.9em; margin: 10px 0 0 0;">
             <span style="margin-right: 5px;">💖 欢迎使用</span>
             <span style="margin-left: 5px;">|</span>
-            <a href="https://github.com/your_username/your_repo/issues" target="_blank" style="color: #2196F3; text-decoration: none; font-weight: bold; padding: 3px 6px; border-radius: 4px;">
+            <a href="https://github.com/lwj7133/AWTunnel-Data-Processing-Master" target="_blank" style="color: #2196F3; text-decoration: none; font-weight: bold; padding: 3px 6px; border-radius: 4px;">
             <span style="margin-left: 5px;">💬 提意见</span>
             </a>
         </p>
@@ -479,7 +477,7 @@ with col2:
 
 # 创建一个表格用于输入水位高度差数据
 st.subheader("📏水位高度差数据输入")
-st.write("请输入水位高度差数据（单位：厘米），共33个数据点（翼型驻点一个，上表面16个，下表面16个:")
+st.write("请输入水位高度差数据（单位：厘米），共33个数据点（前缘点一个，上表面16个，下表面16个:")
 
 # 创建多个 DataFrame 作为输入表格
 columns1 = ['前缘点'] + [f'上{i}' for i in range(1, 9)]
@@ -527,20 +525,20 @@ rho_water = 1000  # kg/m³
 # 添加x坐标数据（单位：米）
 x_coords = [0] + [x/1000 for x in [12.5,24,35.5,47,58.5,70,81.5,93,104.5,116,127.5,139,150.5,162,173.5,185]]
 
-# 计算法向力系数的函数
+# 使用梯形积分公式计算法向力系数的函数
 def calculate_cn(cp_upper, cp_lower, x_coords, chord):
     if len(cp_upper) != len(cp_lower) or len(cp_upper) != len(x_coords) - 1:
         raise ValueError("压力系数和坐标数据长度不匹配")
     
     cn = 0
-    # 理驻点到第一个测量点的区间
+    # 处理驻点到第一个测量点的区间
     delta_xi = (x_coords[1] - x_coords[0]) / chord
     f_0 = 0  # 驻点的压力差为0
-    f_1 = cp_lower[0] - cp_upper[0]
+    f_1 = cp_lower[0] - cp_upper[0] # Cp_lower和Cp_upper分别是下表面和上表面的压力系数集，Cp_lower[0]对应的是下表面的第一个数据点的压力系数，Cp_upper[0]对应的是上表面的第一个数据点的压力系数
     cn += 0.5 * (f_0 + f_1) * delta_xi
     
     # 处理剩余的区间
-    for i in range(len(cp_upper) - 1):
+    for i in range(len(cp_upper) - 1):#range是从0开始的，每循环一次i的值加1，直到i的值等于len(cp_upper) - 1
         delta_xi = (x_coords[i+2] - x_coords[i+1]) / chord  # 注意这里使用i+2和i+1
         f_i = cp_lower[i] - cp_upper[i]
         f_i_plus_1 = cp_lower[i+1] - cp_upper[i+1]
@@ -573,7 +571,7 @@ def calculate_ca(cp_upper, cp_lower, x_coords, chord):
     ca = 0
     # 处理驻点到第一个测量点的区间
     delta_xi = (x_coords[1] - x_coords[0]) / chord
-    f_0 = 0  # 驻点的献为0
+    f_0 = 0  # 驻点的贡献为0
     f_1 = cp_upper[0] * slopes_upper[0] - cp_lower[0] * slopes_lower[0]
     ca += 0.5 * (f_0 + f_1) * delta_xi
     
@@ -677,8 +675,8 @@ if st.button("⚡开始计算⚡"):
                 ["升力系数 Cl", cl, "", "", "", "", "", "", "", "", "", "", "", "", ""],
                 ["阻力系数 Cd", cd, "", "", "", "", "", "", "", "", "", "", "", "", ""]
             ]
-
-            # 创建DataFrame
+            
+# 创建DataFrame
             export_df = pd.DataFrame(export_data)
 
             # 创建CSV文件，不包含索引和列名
@@ -708,7 +706,7 @@ if st.button("⚡开始计算⚡"):
             assert len(x_normalized) - 1 == len(cp_lower), f"下表面数据长度不匹配: x={len(x_normalized)}, y={len(cp_lower)}"
 
             # 创建图形
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12), gridspec_kw={'height_ratios': [2, 3]})
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), gridspec_kw={'height_ratios': [2, 3]})
 
             # 绘制NACA0012翼型轮廓
             def naca0012(x, t=0.12):
@@ -721,59 +719,113 @@ if st.button("⚡开始计算⚡"):
             ax1.plot(x_airfoil, -y_airfoil, 'k-', linewidth=2)
 
             # 添加对称轴
-            ax1.axhline(y=0, color='r', linestyle='--', linewidth=1)
+            ax1.axhline(y=0, color='lightcoral', linestyle='--', linewidth=1)
 
             # 计算并绘制原始数据点
             x_data = [0] + x_normalized[1:-1]  # 包括(0,0)和所有中间点，不包括尾缘点
             y_data_upper = [naca0012(x) for x in x_data]
             y_data_lower = [-y for y in y_data_upper]
-
             # 绘制压力系数分布矢量
             scale = 0.1  # 调整此值以改变矢量长度
-            for i in range(len(x_data)):
-                if i == 0:  # 前缘点
-                    normal_upper = np.array([0, 1])
-                    # 不为前缘点绘制下表面矢量
+            
+            # 单独处理前缘点
+            leading_edge_cp = cp[0]
+            leading_edge_vector = np.array([1, 0])  # 水平向右的单位向量
+            cp_vector = leading_edge_vector * leading_edge_cp * scale
+            if leading_edge_cp <= 0:
+                # 压力系数为负，保持原方向
+                ax1.arrow(x_data[0], y_data_upper[0], cp_vector[0], cp_vector[1], 
+                          head_width=0.01, head_length=0.02, fc='b', ec='b', linewidth=2)
+            else:
+                # 压力系数为正，颠倒矢量方向
+                ax1.arrow(x_data[0] - cp_vector[0], y_data_upper[0] - cp_vector[1], cp_vector[0], -cp_vector[1], 
+                          head_width=0.01, head_length=0.02, fc='r', ec='r', linewidth=2)
+            
+
+            # 处理上表面数据
+            for i in range(2, len(x_data)):
+                # 计算翼型表面的切线
+                if i < len(x_data) - 1:
+                    dx = x_data[i+1] - x_data[i-1]
+                    dy_upper = y_data_upper[i+1] - y_data_upper[i-1]
                 else:
-                    # 计算翼型表面的切线
-                    if i < len(x_data) - 1:
-                        dx = x_data[i+1] - x_data[i-1]
-                        dy_upper = y_data_upper[i+1] - y_data_upper[i-1]
-                        dy_lower = y_data_lower[i+1] - y_data_lower[i-1]
-                    else:
-                        dx = x_data[i] - x_data[i-1]
-                        dy_upper = y_data_upper[i] - y_data_upper[i-1]
-                        dy_lower = y_data_lower[i] - y_data_lower[i-1]
-                    
-                    tangent_upper = np.array([dx, dy_upper])
-                    tangent_lower = np.array([dx, dy_lower])
-                    
-                    # 计算法向量
-                    normal_upper = np.array([-tangent_upper[1], tangent_upper[0]])
-                    normal_lower = np.array([tangent_lower[1], -tangent_lower[0]])
-                    
-                    # 归一化法向量
-                    normal_upper = normal_upper / np.linalg.norm(normal_upper)
-                    normal_lower = normal_lower / np.linalg.norm(normal_lower)
+                    dx = x_data[i] - x_data[i-1]
+                    dy_upper = y_data_upper[i] - y_data_upper[i-1]
+                
+                tangent_upper = np.array([dx, dy_upper])
+                
+                # 计算法向量
+                normal_upper = np.array([-tangent_upper[1], tangent_upper[0]])
+                
+                # 归一化法向量
+                normal_upper = normal_upper / np.linalg.norm(normal_upper)
                 
                 # 上表面
                 cp_vector = -normal_upper * cp_upper[i] * scale
-                ax1.arrow(x_data[i], y_data_upper[i], cp_vector[0], cp_vector[1], 
-                          head_width=0.01, head_length=0.02, fc='b', ec='b')
                 
-                # 下表面 (不包括前缘点)
-                if i > 0:
-                    cp_vector = normal_lower * cp_lower[i-1] * scale  # 注意这里使用i-1
-                    ax1.arrow(x_data[i], y_data_lower[i], cp_vector[0], cp_vector[1], 
-                              head_width=0.01, head_length=0.02, fc='r', ec='r')
+                # 检查压力系数的正负
+                if cp_upper[i] > 0:
+                    # 压力系数为正，颠倒矢量方向
+                    start_point = (x_data[i] - cp_vector[0], y_data_upper[i] - cp_vector[1])
+                    end_point = (x_data[i], y_data_upper[i])
+                    color = 'r'
+                else:
+                    # 压力系数为负，保持原方向
+                    start_point = (x_data[i], y_data_upper[i])
+                    end_point = (x_data[i] + cp_vector[0], y_data_upper[i] + cp_vector[1])
+                    color = 'b'
+                
+                ax1.arrow(start_point[0], start_point[1], 
+                          end_point[0] - start_point[0], end_point[1] - start_point[1], 
+                          head_width=0.01, head_length=0.02, fc=color, ec=color, linewidth=2)
+            
+            # 处理下表面数据
+            for i in range(1, len(x_data)):
+                # 计算翼型表面的切线
+                if i < len(x_data) - 1:
+                    dx = x_data[i+1] - x_data[i-1]
+                    dy_lower = y_data_lower[i+1] - y_data_lower[i-1]
+                else:
+                    dx = x_data[i] - x_data[i-1]
+                    dy_lower = y_data_lower[i] - y_data_lower[i-1]
+                
+                tangent_lower = np.array([dx, dy_lower])
+                
+                # 计算法向量
+                normal_lower = np.array([tangent_lower[1], -tangent_lower[0]])
+                
+                # 归一化法向量
+                normal_lower = normal_lower / np.linalg.norm(normal_lower)
+                
+                # 下表面
+                cp_vector = normal_lower * cp_lower[i-1] * scale
+                
+                # 检查压力系数的正负
+                if cp_lower[i-1] > 0:
+                    
+                    start_point = (x_data[i] + cp_vector[0], y_data_lower[i] + cp_vector[1])
+                    end_point = (x_data[i], y_data_lower[i])
+                    color = 'r'
+                else:
+                    
+                    start_point = (x_data[i], y_data_lower[i])
+                    end_point = (x_data[i] - cp_vector[0], -y_data_lower[i] - cp_vector[1])
+                    color = 'b'
+                
+                ax1.arrow(start_point[0], start_point[1], 
+                          end_point[0] - start_point[0], end_point[1] - start_point[1], 
+                          head_width=0.01, head_length=0.02, fc=color, ec=color, linewidth=2)
 
             ax1.axis('equal')
-            ax1.set_xlim(-0.1, 1.1)
-            ax1.set_ylim(-0.3, 0.3)
+            ax1.set_xlim(-0.2, 1.2)
+            ax1.set_ylim(-0.6, 0.6)
             ax1.set_xlabel('x/c')
             ax1.set_ylabel('y/c')
             ax1.set_title('NACA 0012 压力系数分布矢量图')
             ax1.grid(True, linestyle=':', alpha=0.7)
+            # 添加压力系数说明
+            ax1.text(0.05, 0.90, '蓝：负压力系数', color='b', transform=ax1.transAxes, verticalalignment='top')
+            ax1.text(0.05, 0.85, '红：正压力系数', color='r', transform=ax1.transAxes, verticalalignment='top')
 
             # 分段插值
             def piecewise_interpolation_upper(x, y):
@@ -954,5 +1006,5 @@ if st.button("⚡开始计算⚡"):
 
     except ValueError as e:
         st.error(f"计算错误: {str(e)}")
-# 在所有主要内容之后关闭div
-st.markdown('</div>', unsafe_allow_html=True)
+    # 在所有主要内容之后关闭div
+    st.markdown('</div>', unsafe_allow_html=True)
