@@ -9,6 +9,17 @@ from pandas.api.types import is_numeric_dtype
 import requests
 import re
 import streamlit as st
+import streamlit as st
+import os
+
+# 设置端口和主机
+if "PORT" in os.environ:
+    port = int(os.environ["PORT"])
+else:
+    port = 8501
+
+st.run(port=port, host='0.0.0.0')
+
 
 # 在主要内容之前添加以下代码
 st.markdown(
