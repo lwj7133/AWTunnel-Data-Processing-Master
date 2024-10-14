@@ -18,9 +18,6 @@ if "PORT" in os.environ:
 else:
     port = 8501
 
-st.run(port=port, host='0.0.0.0')
-
-
 # 在主要内容之前添加以下代码
 st.markdown(
     """
