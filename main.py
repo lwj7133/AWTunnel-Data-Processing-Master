@@ -64,7 +64,7 @@ import requests
 
 # 在侧边栏中添加聊天助手
 st.sidebar.markdown("---")
-with st.sidebar.expander("🤖 AI-流体力学专家 ", expanded=False):
+with st.sidebar.expander("🤖 AI-流体力学专家（高效回复/联网搜索/专业回答） ", expanded=False):
 
     # 初始化聊天历史和上下文
     if 'chat_history' not in st.session_state:
@@ -80,7 +80,7 @@ with st.sidebar.expander("🤖 AI-流体力学专家 ", expanded=False):
     if 'api_base' not in st.session_state:
         st.session_state.api_base = "https://api.tu-zi.com"
     if 'model' not in st.session_state:
-        st.session_state.model = "gpt-4o"
+        st.session_state.model = "gpt-4o-2024-05-13"
     
     api_key = st.text_input("输入API密钥", value="默认", type="password")
     api_base = st.text_input("输入API基础URL", value="默认")
@@ -340,7 +340,7 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
         for j in range(8):
             col1, col2 = st.columns(2)
             with col1:
-                re = st.number_input(f"雷数 {j+1}", key=f"re_cl_re_{i}_{j}", format="%.2e")
+                re = st.number_input(f"雷诺数 {j+1}", key=f"re_cl_re_{i}_{j}", format="%.2e")
             with col2:
                 cl = st.number_input(f"升力系数 {j+1}", key=f"cl_cl_re_{i}_{j}", format="%.4f")
             
