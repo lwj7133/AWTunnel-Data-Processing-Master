@@ -12,9 +12,25 @@ import zipfile
 import os
 import tempfile
 import matplotlib.font_manager as fm
+import matplotlib as mpl
+
+# 获取当前脚本所在目录
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 构建字体文件的完整路径
+font_path = os.path.join(current_dir, 'fonts', 'SimHei.ttf')
+
+# 临时注册新的全局字体
+mpl.font_manager.fontManager.addfont(font_path)
+
+# 设置字体以正常显示中文标签
+plt.rcParams['font.sans-serif'] = ['SimHei']
+
+# 正常显示负号
+plt.rcParams['axes.unicode_minus'] = False
 
 # 添加一个系统无关的中文字体
-plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei'] + plt.rcParams['font.sans-serif']
 
 # 在主要内容之前添加以下代码
 st.markdown(
@@ -325,7 +341,7 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
             ax.set_title('不同V∞下的Cl-α曲线')
             
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图
@@ -422,7 +438,7 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cd-α曲线"):
             ax.set_title('不同V∞下的Cd-α曲线')
             
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图
@@ -530,7 +546,7 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
             ax.set_title('不同攻角下的升力系数-雷诺数曲线')
             
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图形
@@ -1098,7 +1114,7 @@ if st.button("⚡开始计算⚡"):
             ax.set_title(f'NACA 0012 V/V∞ 分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)')
 
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
 
             # 在Streamlit中显示图形
