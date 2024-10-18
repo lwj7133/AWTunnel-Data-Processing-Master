@@ -12,6 +12,8 @@ import re
 import zipfile
 import os
 import tempfile
+import json
+
 
 # 在主要内容之前添加以下代码
 font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf')
@@ -59,6 +61,30 @@ st.sidebar.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
+# 添加 post_process_latex 函数的定义
+def post_process_latex(text):
+    """
+    后处理 AI 输出，确保数学公式被正确包裹在 $$ 符号内
+    """
+    # 移除多余的 $ 符号
+    text = re.sub(r'\${2,}', '$$', text)
+    
+    # 查找可能的公式开始和结束
+    pattern = r'(\\begin\{.*?\}|\\end\{.*?\}|\\\[|\\\]|\\(|\\))'
+    
+    def replace_func(match):
+        formula = match.group(1)
+        if formula in ['\\(', '\\)']:
+            return '$$'
+        if formula in ['\\[', '\\]']:
+            return '$$'
+        return formula
+    
+    # 使用正则表达式查找可能的公式边界并替换
+    processed_text = re.sub(pattern, replace_func, text)
+    
+    return processed_text
+
 # 在侧边栏添加分隔线
 st.sidebar.markdown("---")
 
@@ -76,6 +102,10 @@ with st.sidebar.expander("🤖 AI-流体力学专家（✅连续对话/🌐实�
         st.session_state.chat_context = []
     if 'last_uploaded_image' not in st.session_state:
         st.session_state.last_uploaded_image = None
+
+    # 在 st.sidebar.expander 内部，API 设置之前添加以下代码
+    system_message = """你是一个专业的流体力学AI助手。你能够回答关于流体力学的问题，解释相关概念，
+并协助分析流体动力学数据和图像。请用简洁、专业的语言回答问题，必要时使用数学公式来解释概念。"""
 
     # API设置
     if 'api_key' not in st.session_state:
@@ -122,13 +152,16 @@ with st.sidebar.expander("🤖 AI-流体力学专家（✅连续对话/🌐实�
                 # 这是普通文本，使用 st.markdown 渲染
                 st.markdown(part)
 
+    # 创建一个空的容器用于显示AI响应
+    ai_response_container = st.empty()
+
     # 显示聊天历史
     for message in st.session_state.chat_history:
         if isinstance(message, tuple) and message[0] == "image":
             st.image(message[1], caption="上传图片", use_column_width=True)
         elif message.startswith("AI:"):
             st.markdown("AI:")
-            render_message(latex_to_streamlit(message[3:]))  # 去掉"AI:"前缀
+            st.markdown(post_process_latex(message[3:]))
         else:
             st.text(message)
 
@@ -149,39 +182,50 @@ with st.sidebar.expander("🤖 AI-流体力学专家（✅连续对话/🌐实�
         
         return simplified
 
-    def call_api(context):
+    def stream_api_call(context):
         headers = {
             "Authorization": f"Bearer {api_key_to_use}",
             "Content-Type": "application/json"
         }
         
-        # 添加专家设定的提示词
-        system_message = "你是一位流体力学和飞行器设计方面的专家，请用专业且易懂的方式回答问题，并举一些简单贴合的例子来说明，对提问多鼓励赞赏，可以多使用一些emoji，并严格遵这些规则"
-        
-        # 简化上下文，现在默认保留8条消息
         simplified_context = simplify_context(context)
         
-        # 确保系统消息在最前面
         if simplified_context[0]["role"] != "system":
             simplified_context.insert(0, {"role": "system", "content": system_message})
         
         data = {
             "model": model_to_use,
             "messages": simplified_context,
-            "max_tokens": 1000
+            "max_tokens": 1000,
+            "stream": True
         }
         
         try:
             url = f"{api_base_to_use}/v1/chat/completions"
-            response = requests.post(url, headers=headers, json=data)
+            response = requests.post(url, headers=headers, json=data, stream=True)
             response.raise_for_status()
-            return response.json()['choices'][0]['message']['content']
-        except requests.exceptions.RequestException as e:
+            
+            full_response = ""
+            response_container = st.empty()
+            
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        chunk = json.loads(line.decode('utf-8').split('data: ')[1])
+                        if 'choices' in chunk and len(chunk['choices']) > 0:
+                            if 'delta' in chunk['choices'][0] and 'content' in chunk['choices'][0]['delta']:
+                                content = chunk['choices'][0]['delta']['content']
+                                full_response += content
+                                processed_response = post_process_latex(full_response)
+                                response_container.markdown(processed_response)
+                    except json.JSONDecodeError:
+                        continue
+                    except IndexError:
+                        continue
+            
+            return post_process_latex(full_response)
+        except Exception as e:
             return f"API请求错误: {str(e)}"
-        except ValueError as e:
-            return f"JSON解析错误: {str(e)}\n响应内容: {response.text}"
-        except KeyError as e:
-            return f"响应格式错误: {str(e)}\n响应内容: {response.json()}"
 
     # 创建输入框
     user_input = st.text_input("在这里输入你的问题:")
@@ -194,54 +238,61 @@ with st.sidebar.expander("🤖 AI-流体力学专家（✅连续对话/🌐实�
 
     # 在第一列放置发送按钮
     with col1:
-        if st.button("发送", key="send_button"):
-            if api_key_to_use and (user_input or uploaded_file):
-                # 将用户输入添加到聊天历史和上下文
-                if user_input:
-                    st.session_state.chat_history.append(f"你: {user_input}")
-                    st.session_state.chat_context.append({"role": "user", "content": user_input})
-                
-                image_url = None
-                if uploaded_file:
-                    # 将图片转换为base64编码
-                    import base64
-                    image_base64 = base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
-                    image_url = f"data:image/jpeg;base64,{image_base64}"
-                    st.session_state.chat_history.append(("image", uploaded_file))
-                    st.session_state.chat_context.append({"role": "user", "content": [
-                        {"type": "text", "text": user_input if user_input else "请分析这张图片"},
-                        {"type": "image_url", "image_url": {"url": image_url}}
-                    ]})
-                
-                # 调用API
-                with st.spinner('AI在思考中...'):
-                    # 调用API获取AI响应
-                    ai_response = call_api(st.session_state.chat_context)
-                
-                # 将AI回答添加到聊天历史和上下文
-                st.session_state.chat_history.append(f"AI: {ai_response}")
-                st.session_state.chat_context.append({"role": "assistant", "content": ai_response})
-                
-                # 渲染AI的响应
-                st.markdown("AI:")
-                render_message(latex_to_streamlit(ai_response))
-                
-                # 清空输入框和上传的文件
-                st.session_state.user_input = ""
-                st.session_state.last_uploaded_image = None
-                
-                # 重新加载页面以显示新消息
-                st.rerun()
-            else:
-                st.warning("请输入API密钥和问题或上传图片。")
+        send_button = st.button("发送", key="send_button")
 
     # 在第二列放置清空聊天按钮
     with col2:
-        if st.button("清空聊天", key="clear_chat_button"):
-            st.session_state.chat_history = []
-            st.session_state.chat_context = []
+        clear_button = st.button("清空聊天", key="clear_chat_button")
+
+    # 处理发送按钮点击事件
+    if send_button:
+        if api_key_to_use and (user_input or uploaded_file):
+            # 将用户输入添加到聊天历史和上下文
+            if user_input:
+                st.session_state.chat_history.append(f"你: {user_input}")
+                st.session_state.chat_context.append({"role": "user", "content": user_input})
+            
+            # 处理图片上传
+            if uploaded_file:
+                # 将图片转换为base64编码
+                import base64
+                image_base64 = base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
+                image_url = f"data:image/jpeg;base64,{image_base64}"
+                st.session_state.chat_history.append(("image", uploaded_file))
+                st.session_state.chat_context.append({"role": "user", "content": [
+                    {"type": "text", "text": user_input if user_input else "请分析这张图片"},
+                    {"type": "image_url", "image_url": {"url": image_url}}
+                ]})
+            
+            # 调用API
+            with st.spinner('AI正在思考中...'):
+                ai_response = stream_api_call(st.session_state.chat_context)
+            
+            # 更新聊天历史和上下文
+            processed_response = post_process_latex(ai_response)
+            st.session_state.chat_history.append(f"AI: {processed_response}")
+            st.session_state.chat_context.append({"role": "assistant", "content": ai_response})
+            
+            # 显示AI响应
+            ai_response_container.markdown("AI:")
+            st.markdown(processed_response)  # 直接使用已经处理过的响应
+            
+            # 清空输入框和上传的文件
+            st.session_state.user_input = ""
             st.session_state.last_uploaded_image = None
+            
+            # 重新加载页面以显示新消息
             st.rerun()
+        else:
+            st.warning("请输入API密钥和问题或上传图片。")
+
+    # 处理清空聊天按钮点击事件
+    if clear_button:
+        st.session_state.chat_history = []
+        st.session_state.chat_context = []
+        st.session_state.last_uploaded_image = None
+        ai_response_container.empty()
+        st.rerun()
 
     # 添加声明
     st.markdown("⚠️ **声明：** 永远不要完全信任AI，AI也可能会犯错，回答仅供参考。重要数据请自行分辨和验证。")
@@ -250,7 +301,7 @@ with st.sidebar.expander("🤖 AI-流体力学专家（✅连续对话/🌐实�
 st.sidebar.markdown("---")
 
 # 使用 expander 创建可折叠的数据输入部分
-with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
+with st.sidebar.expander("📈 绘制不同V∞下的升力系数Cl-α曲线"):
     # 创建一个空的DataFrame来存储用户输入的数据
     cl_alpha_data = pd.DataFrame(columns=['来流速度', '攻角', '升力系数'])
 
@@ -347,10 +398,10 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
             st.warning("请至少输入一组有效的攻角和升力系数数据。")
 
 # 在侧边栏添加分隔线
-st.sidebar.markdown("---")
-
+st.sidebar.markdown("<hr style='margin: 5px 0;'>", unsafe_allow_html=True)
+    
 # 使用 expander 创建可折叠的数据输入部分
-with st.sidebar.expander("📈 绘制不同V∞下的Cd-α曲线"):
+with st.sidebar.expander("📈 绘制不同V∞下的阻力系数Cd-α曲线"):
     # 创建一个空的DataFrame来存储用户输入的数据
     cd_alpha_data = pd.DataFrame(columns=['来流速度', '攻角', '阻力系数'])
 
@@ -442,9 +493,9 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cd-α曲线"):
             )
         else:
             st.warning("请至少输入一组有效的攻角和阻力系数数据。")
-    
+
 # 在侧边栏添加分隔线
-st.sidebar.markdown("---")
+st.sidebar.markdown("<hr style='margin: 5px 0;'>", unsafe_allow_html=True)
     
 # 使用 expander 创建可折叠的数据输入部分
 with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
