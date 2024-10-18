@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -13,6 +14,11 @@ import os
 import tempfile
 
 # 在主要内容之前添加以下代码
+font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf')
+mpl.font_manager.fontManager.addfont(font_path)  # 临时注册新的全局字体
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+
 st.markdown(
     """
     <style>
@@ -38,10 +44,10 @@ st.markdown(
 # 在侧边栏添加署名
 st.sidebar.markdown("""
     <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #E6F3FF, #B3E0FF); border-radius: 15px; box-shadow: 0 0 20px rgba(179, 224, 255, 0.7), 0 0 40px rgba(230, 243, 255, 0.5);">
-        <h4 style="color: #1a5f7a; margin: 0 0 5px 0; font-weight: bold; font-family: 'Arial', sans-serif; text-shadow: 0 0 5px #B3E0FF;">🛫✨ Airfoil Wind Tunnel Data Processing Master ✨🛫</h4>
+        <h4 style="color: #1a5f7a; margin: 0 0 5px 0; font-weight: bold; font-family: 'SimHei', sans-serif; text-shadow: 0 0 5px #B3E0FF;">🛫✨ Airfoil Wind Tunnel Data Processing Master ✨🛫</h4>
         <p style="color: #3498db; font-size: 0.9em; font-style: italic; margin: 0 0 5px 0; text-shadow: 0 0 3px #E6F3FF;">Professional / Efficient / Scientific</p>
         <hr style="border: 0; height: 1px; background-image: linear-gradient(to right, rgba(179, 224, 255, 0), rgba(179, 224, 255, 0.75), rgba(179, 224, 255, 0)); margin: 0;">
-        <p style="color: #34495e; font-size: 1.1em; margin: 10px 0; font-family: 'Microsoft YaHei', sans-serif; text-shadow: 0 0 3px #B3E0FF;">👨‍💻 Developed By LuWeiJing</p>
+        <p style="color: #34495e; font-size: 1.1em; margin: 10px 0; font-family: 'SimHei', sans-serif; text-shadow: 0 0 3px #B3E0FF;">👨‍💻 Developed By LuWeiJing</p>
         <p style="color: #2c3e50; font-size: 1em; margin: 5px 0; text-shadow: 0 0 2px #E6F3FF;">🚀 Version: 2.0.0 | 📅 September 2024</p>
         <p style="color: #546e7a; font-size: 0.9em; margin: 10px 0 0 0;">
             <span style="margin-right: 5px; text-shadow: 0 0 2px #B3E0FF;">💖 欢迎使用</span>
@@ -320,8 +326,8 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
             # 设置标题
             ax.set_title('不同V∞下的Cl-α曲线')
             
-            # 修改字体设置
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK', 'PingFang SC']
+            # 设置中文字体
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图
@@ -417,8 +423,8 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cd-α曲线"):
             # 设置标题
             ax.set_title('不同V∞下的Cd-α曲线')
             
-            # 修改字体设置
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK', 'PingFang SC']
+            # 设置中文字体
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图
@@ -525,8 +531,8 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
             # 设置标题
             ax.set_title('不同攻角下的升力系数-雷诺数曲线')
             
-            # 修改字体设置
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK', 'PingFang SC']
+            # 设置中文字体
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图形
@@ -1094,7 +1100,7 @@ if st.button("⚡开始计算⚡"):
             ax.set_title(f'NACA 0012 V/V∞ 分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)')
 
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK', 'PingFang SC']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
 
             # 在Streamlit中显示图形
