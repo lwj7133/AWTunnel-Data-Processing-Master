@@ -14,7 +14,7 @@ import tempfile
 import matplotlib.font_manager as fm
 
 # 添加一个系统无关的中文字体
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei'] + plt.rcParams['font.sans-serif']
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
 
 # 在主要内容之前添加以下代码
 st.markdown(
@@ -324,6 +324,10 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
             # 设置标题
             ax.set_title('不同V∞下的Cl-α曲线')
             
+            # 设置中文字体
+            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+            plt.rcParams['axes.unicode_minus'] = False
+            
             # 在侧边栏中显示图
             st.pyplot(fig)
             
@@ -416,6 +420,10 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cd-α曲线"):
             
             # 设置标题
             ax.set_title('不同V∞下的Cd-α曲线')
+            
+            # 设置中文字体
+            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+            plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图
             st.pyplot(fig)
@@ -520,6 +528,10 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
             
             # 设置标题
             ax.set_title('不同攻角下的升力系数-雷诺数曲线')
+            
+            # 设置中文字体
+            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+            plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图形
             st.pyplot(fig)
@@ -1084,6 +1096,10 @@ if st.button("⚡开始计算⚡"):
 
             # 设置标题
             ax.set_title(f'NACA 0012 V/V∞ 分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)')
+
+            # 设置中文字体
+            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Arial Unicode MS', 'Noto Sans CJK SC'] + plt.rcParams['font.sans-serif']
+            plt.rcParams['axes.unicode_minus'] = False
 
             # 在Streamlit中显示图形
             st.pyplot(fig)
