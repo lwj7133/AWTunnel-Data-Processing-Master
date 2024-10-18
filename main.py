@@ -13,9 +13,12 @@ import os
 import tempfile
 import matplotlib.font_manager as fm
 
-# 添加自定义字体
-font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf')
+# 使用绝对路径
+font_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf'))
 custom_font = fm.FontProperties(fname=font_path)
+
+# 打印路径以进行调试
+print(f"Font path: {font_path}")
 
 # 设置 matplotlib 使用自定义字体
 plt.rcParams['font.family'] = custom_font.get_name()
