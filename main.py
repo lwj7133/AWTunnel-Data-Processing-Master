@@ -11,26 +11,19 @@ import re
 import zipfile
 import os
 import tempfile
-import matplotlib.font_manager as fm
-import matplotlib as mpl
 
-# 获取当前脚本所在目录
-current_dir = os.path.dirname(os.path.abspath(__file__))
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC&display=swap');
 
-# 构建字体文件的完整路径
-font_path = os.path.join(current_dir, 'fonts', 'SimHei.ttf')
-
-# 临时注册新的全局字体
-mpl.font_manager.fontManager.addfont(font_path)
-
-# 设置字体以正常显示中文标签
-plt.rcParams['font.sans-serif'] = ['SimHei']
-
-# 正常显示负号
-plt.rcParams['axes.unicode_minus'] = False
-
-# 添加一个系统无关的中文字体
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei'] + plt.rcParams['font.sans-serif']
+    html, body, [class*="css"]  {
+    font-family: 'Noto Sans SC', sans-serif;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # 在主要内容之前添加以下代码
 st.markdown(
@@ -62,7 +55,7 @@ st.sidebar.markdown("""
         <p style="color: #3498db; font-size: 0.9em; font-style: italic; margin: 0 0 5px 0; text-shadow: 0 0 3px #E6F3FF;">Professional / Efficient / Scientific</p>
         <hr style="border: 0; height: 1px; background-image: linear-gradient(to right, rgba(179, 224, 255, 0), rgba(179, 224, 255, 0.75), rgba(179, 224, 255, 0)); margin: 0;">
         <p style="color: #34495e; font-size: 1.1em; margin: 10px 0; font-family: 'Microsoft YaHei', sans-serif; text-shadow: 0 0 3px #B3E0FF;">👨‍💻 Developed By LuWeiJing</p>
-        <p style="color: #2c3e50; font-size: 1em; margin: 5px 0; text-shadow: 0 0 2px #E6F3FF;">🚀 Version: 2.0.1 | 📅 September 2024</p>
+        <p style="color: #2c3e50; font-size: 1em; margin: 5px 0; text-shadow: 0 0 2px #E6F3FF;">🚀 Version: 2.0.0 | 📅 September 2024</p>
         <p style="color: #546e7a; font-size: 0.9em; margin: 10px 0 0 0;">
             <span style="margin-right: 5px; text-shadow: 0 0 2px #B3E0FF;">💖 欢迎使用</span>
             <span style="margin-left: 5px;">|</span>
