@@ -13,20 +13,8 @@ import os
 import tempfile
 import matplotlib.font_manager as fm
 
-# 获取当前脚本所在目录
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-# 构建字体文件的完整路径
-font_path = os.path.join(current_dir, 'fonts', 'SimHei.ttf')
-
-# 临时注册新的全局字体
-fm.fontManager.addfont(font_path)
-
-# 设置字体以正常显示中文标签
-plt.rcParams['font.sans-serif'] = ['SimHei']
-
-# 正常显示负号
-plt.rcParams['axes.unicode_minus'] = False
+# 添加一个系统无关的中文字体
+plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei'] + plt.rcParams['font.sans-serif']
 
 # 在主要内容之前添加以下代码
 st.markdown(
