@@ -18,7 +18,8 @@ import matplotlib as mpl
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 构建字体文件的完整路径
-font_path = os.path.join(current_dir, 'fonts', 'SimHei.ttf')
+font_path = os.path.join(current_dir,'AWTunnel-Data-Processing-Master
+', 'fonts', 'SimHei.ttf')
 
 # 临时注册新的全局字体
 mpl.font_manager.fontManager.addfont(font_path)
