@@ -18,7 +18,7 @@ import matplotlib as mpl
 plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei'] + plt.rcParams['font.sans-serif']
 
 # 临时注册新的全局字体
-mpl.font_manager.fontManager.addfont('/SimHei.ttf')
+mpl.font_manager.fontManager.addfont('SimHei.ttf')
 
 # 设置字体以正常显示中文标签
 plt.rcParams['font.sans-serif'] = ['SimHei']
