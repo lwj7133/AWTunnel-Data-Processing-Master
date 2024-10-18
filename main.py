@@ -11,18 +11,29 @@ import re
 import zipfile
 import os
 import tempfile
+import matplotlib.font_manager as fm
 
+# 添加自定义字体
+font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf')
+custom_font = fm.FontProperties(fname=font_path)
+
+# 设置 matplotlib 使用自定义字体
+plt.rcParams['font.family'] = custom_font.get_name()
+
+# 在 Streamlit 中使用自定义字体
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC&display=swap');
-
-    html, body, [class*="css"]  {
-    font-family: 'Noto Sans SC', sans-serif;
+    @font-face {
+        font-family: 'SimHei';
+        src: url('fonts/SimHei.ttf') format('truetype');
+    }
+    body {
+        font-family: 'SimHei', sans-serif;
     }
     </style>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
 
 # 在主要内容之前添加以下代码
@@ -225,7 +236,7 @@ with st.sidebar.expander("🤖 AI-流体力学专家（✅高效回复/🌐实�
                     # 调用API获取AI响应
                     ai_response = call_api(st.session_state.chat_context)
                 
-                # 将AI回答添加到聊天历史和上下文
+                # 将AI回答添加到聊天历史上下文
                 st.session_state.chat_history.append(f"AI: {ai_response}")
                 st.session_state.chat_context.append({"role": "assistant", "content": ai_response})
                 
@@ -315,8 +326,8 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
                         ax.plot(velocity_data['攻角'], velocity_data['升力系数'], color=colors[i], label=f"V∞ = {velocity} m/s")
             
             # 设置坐标轴
-            ax.set_xlabel('攻角 α (度)')
-            ax.set_ylabel('升力系数 Cl')
+            ax.set_xlabel('攻角 α (度)', fontproperties=custom_font)
+            ax.set_ylabel('升力系数 Cl', fontproperties=custom_font)
             
             # 设置y轴从0开始
             ax.set_ylim(bottom=0)
@@ -325,17 +336,13 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
             ax.axhline(y=0, color='k', linestyle='--', linewidth=0.7)
             
             # 添加图例
-            ax.legend()
+            ax.legend(prop=custom_font)
             
             # 添加网格
             ax.grid(True, linestyle=':', alpha=0.7)
             
             # 设置标题
-            ax.set_title('不同V∞下的Cl-α曲线')
-            
-            # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
-            plt.rcParams['axes.unicode_minus'] = False
+            ax.set_title('不同V∞下的Cl-α曲线', fontproperties=custom_font)
             
             # 在侧边栏中显示图
             st.pyplot(fig)
@@ -415,24 +422,20 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cd-α曲线"):
                         ax.plot(velocity_data['攻角'], velocity_data['阻力系数'], color=colors[i], label=f"V∞ = {velocity} m/s")
             
             # 设置坐标轴
-            ax.set_xlabel('攻角 α (度)')
-            ax.set_ylabel('阻力系数 Cd')
+            ax.set_xlabel('攻角 α (度)', fontproperties=custom_font)
+            ax.set_ylabel('阻力系数 Cd', fontproperties=custom_font)
             
             # 设置y轴从0开始
             ax.set_ylim(bottom=0)
             
             # 添加图例
-            ax.legend()
+            ax.legend(prop=custom_font)
             
             # 添加网格
             ax.grid(True, linestyle=':', alpha=0.7)
             
             # 设置标题
-            ax.set_title('不同V∞下的Cd-α曲线')
-            
-            # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
-            plt.rcParams['axes.unicode_minus'] = False
+            ax.set_title('不同V∞下的Cd-α曲线', fontproperties=custom_font)
             
             # 在侧边栏中显示图
             st.pyplot(fig)
@@ -519,8 +522,8 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
             ax.set_xscale('log')
             
             # 设置坐标轴标签
-            ax.set_xlabel('雷诺数 Re')
-            ax.set_ylabel('升力系数 Cl')
+            ax.set_xlabel('雷诺数 Re', fontproperties=custom_font)
+            ax.set_ylabel('升力系数 Cl', fontproperties=custom_font)
             
             # 自动调整y轴范围，确保包含所有数据点
             y_min = cl_re_data['升力系数'].min()
@@ -530,17 +533,13 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
                 ax.set_ylim(y_min - 0.1 * y_range, y_max + 0.1 * y_range)
             
             # 添加图例
-            ax.legend()
+            ax.legend(prop=custom_font)
             
             # 添加网格（对数坐标下的网格）
             ax.grid(True, which="both", ls="-", alpha=0.2)
             
             # 设置标题
-            ax.set_title('不同攻角下的升力系数-雷诺数曲线')
-            
-            # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
-            plt.rcParams['axes.unicode_minus'] = False
+            ax.set_title('不同攻角下的升力系数-雷诺数曲线', fontproperties=custom_font)
             
             # 在侧边栏中显示图形
             st.pyplot(fig)
@@ -968,13 +967,13 @@ if st.button("⚡开始计算⚡"):
             ax1.axis('equal')
             ax1.set_xlim(-0.2, 1.2)
             ax1.set_ylim(-0.6, 0.6)
-            ax1.set_xlabel('x/c')
-            ax1.set_ylabel('y/c')
-            ax1.set_title('NACA 0012 压力系数分布矢量图')
+            ax1.set_xlabel('x/c', fontproperties=custom_font)
+            ax1.set_ylabel('y/c', fontproperties=custom_font)
+            ax1.set_title('NACA 0012 压力系数分布矢量图', fontproperties=custom_font)
             ax1.grid(True, linestyle=':', alpha=0.7)
             # 添加压力系数说明
-            ax1.text(0.05, 0.90, '蓝：负压力系数', color='b', transform=ax1.transAxes, verticalalignment='top')
-            ax1.text(0.05, 0.85, '红：正压力系数', color='r', transform=ax1.transAxes, verticalalignment='top')
+            ax1.text(0.05, 0.90, '蓝：负压力系数', color='b', transform=ax1.transAxes, verticalalignment='top', fontproperties=custom_font)
+            ax1.text(0.05, 0.85, '红：正压力系数', color='r', transform=ax1.transAxes, verticalalignment='top', fontproperties=custom_font)
 
             # 分段插值
             def piecewise_interpolation_upper(x, y):
@@ -1016,8 +1015,8 @@ if st.button("⚡开始计算⚡"):
             ax2.plot([x_normalized[0], x_normalized[1]], [cp_upper[0], cp_upper[1]], color='purple', linewidth=2)
 
             # 设置坐标轴
-            ax2.set_xlabel('x/c')
-            ax2.set_ylabel('Cp')
+            ax2.set_xlabel('x/c', fontproperties=custom_font)
+            ax2.set_ylabel('Cp', fontproperties=custom_font)
             ax2.invert_yaxis()  # 反转y轴
 
             # 设置y轴范围,确保0在中间
@@ -1030,13 +1029,13 @@ if st.button("⚡开始计算⚡"):
             ax2.axhline(y=0, color='k', linestyle='--', linewidth=0.5)
 
             # 添加图例
-            ax2.legend()
+            ax2.legend(prop=custom_font)
 
             # 添加网格
             ax2.grid(True, linestyle=':', alpha=0.7)
 
             # 设置标题
-            fig.suptitle(f'NACA 0012 翼型和压力系数分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)', fontsize=16)
+            fig.suptitle(f'NACA 0012 翼型和压力系数分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)', fontproperties=custom_font, fontsize=16)
 
             # 调整子图之间的间距
             plt.tight_layout()
@@ -1086,8 +1085,8 @@ if st.button("⚡开始计算⚡"):
 
            
             # 设置坐标轴
-            ax.set_xlabel('x/c')
-            ax.set_ylabel('V/V∞')
+            ax.set_xlabel('x/c', fontproperties=custom_font)
+            ax.set_ylabel('V/V∞', fontproperties=custom_font)
 
             # 设置y轴从0开始，并设置刻度间隔为0.2
             y_max = max(v_ratio) * 1.1  # 给最大值留一些余量
@@ -1098,17 +1097,13 @@ if st.button("⚡开始计算⚡"):
             ax.axhline(y=1, color='red', linestyle='--', linewidth=0.5)
 
             # 添加图例
-            ax.legend()
+            ax.legend(prop=custom_font)
 
             # 添加网格
             ax.grid(True, linestyle=':', alpha=0.7)
 
             # 设置标题
-            ax.set_title(f'NACA 0012 V/V∞ 分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)')
-
-            # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
-            plt.rcParams['axes.unicode_minus'] = False
+            ax.set_title(f'NACA 0012 V/V∞ 分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)', fontproperties=custom_font)
 
             # 在Streamlit中显示图形
             st.pyplot(fig)
