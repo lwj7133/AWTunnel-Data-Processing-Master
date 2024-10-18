@@ -11,6 +11,14 @@ import re
 import zipfile
 import os
 import tempfile
+import matplotlib.font_manager as fm
+
+# 添加自定义字体
+font_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf'))
+custom_font = fm.FontProperties(fname=font_path)
+
+# 设置 matplotlib 使用自定义字体
+plt.rcParams['font.family'] = custom_font.get_name()
 
 # 在主要内容之前添加以下代码
 st.markdown(
@@ -494,24 +502,24 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
                             ax.plot(x_smooth, y_smooth, '-', label=f"α = {angle}°")
                         except ValueError:
                             # 如果插值失败，只绘制原始数据点
-                            ax.plot(angle_data['雷诺数'], angle_data['升力系数'], '-', label=f"α = {angle}°")
+                            ax.plot(angle_data['\u96f7\u8d1d\u6570'], angle_data['\u5347\u529b\u7cfb\u6570'], '-', label=f"\u03b1 = {angle}\u00b0")
                     else:
                         # 如果点数不足，则只连接这些点
-                        ax.plot(angle_data['雷诺数'], angle_data['升力系数'], '-', label=f"α = {angle}°")
+                        ax.plot(angle_data['\u96f7\u8d1d\u6570'], angle_data['\u5347\u529b\u7cfb\u6570'], '-', label=f"\u03b1 = {angle}\u00b0")
                     
                     # 绘制原始数据点
-                    ax.scatter(angle_data['雷诺数'], angle_data['升力系数'], s=30, zorder=5)
+                    ax.scatter(angle_data['\u96f7\u8d1d\u6570'], angle_data['\u5347\u529b\u7cfb\u6570'], s=30, zorder=5)
             
             # 设置X轴为对数坐标
             ax.set_xscale('log')
             
             # 设置坐标轴标签
-            ax.set_xlabel('雷诺数 Re')
-            ax.set_ylabel('升力系数 Cl')
+            ax.set_xlabel('\u96f7\u8d1d\u6570 Re')
+            ax.set_ylabel('\u5347\u529b\u7cfb\u6570 Cl')
             
             # 自动调整y轴范围，确保包含所有数据点
-            y_min = cl_re_data['升力系数'].min()
-            y_max = cl_re_data['升力系数'].max()
+            y_min = cl_re_data['\u5347\u529b\u7cfb\u6570'].min()
+            y_max = cl_re_data['\u5347\u529b\u7cfb\u6570'].max()
             if np.isfinite(y_min) and np.isfinite(y_max):
                 y_range = y_max - y_min
                 ax.set_ylim(y_min - 0.1 * y_range, y_max + 0.1 * y_range)
@@ -523,7 +531,7 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
             ax.grid(True, which="both", ls="-", alpha=0.2)
             
             # 设置标题
-            ax.set_title('不同攻角下的升力系数-雷诺数曲线')
+            ax.set_title(u'\u4e0d\u540c\u653b\u89d2\u4e0b\u7684\u5347\u529b\u7cfb\u6570-Re\u66f2\u7ebf')
             
             # 设置中文字体
             plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS']
@@ -537,14 +545,14 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
             plt.savefig(buffer, format='png', dpi=300, bbox_inches='tight')
             buffer.seek(0)
             st.download_button(
-                label="下载升力系数-雷诺数曲线图",
+                label=u"\U0001F4E5\u4e0b\u8f7d\u4e0d\u540c\u03b1\u4e0b\u7684Cl-Re\u66f2\u7ebf\u56fe",
                 data=buffer,
-                file_name="不同α下的Cl-Re曲线图.png",
+                file_name=u"NACA0012_\u4e0d\u540c\u03b1\u4e0b\u7684Cl-Re\u66f2\u7ebf.png",
                 mime="image/png",
                 key="download_cl_re_curve"
             )
         else:
-            st.warning("请至少输入一组有效的攻角、雷诺数和升力系数数据。")
+            st.warning(u"\u8bf7\u81f3\u5c11\u8f93\u5165\u4e00\u7ec4\u6709\u6548\u7684\u653b\u89d2\u3001\u96f7\u8d1d\u6570\u548c\u5347\u529b\u7cfb\u6570\u6570\u636e\u3002")
 
 # 萨瑟兰公式计算动力粘度
 def sutherland_viscosity(T):
@@ -554,19 +562,19 @@ def sutherland_viscosity(T):
     return mu0 * (T/T0)**(3/2) * (T0 + S) / (T + S)
 
 # 标题
-st.markdown("<h2 style='text-align: center;'>🛫✨翼型风洞实验数据处理大师✨🛫</h2>", unsafe_allow_html=True)
+st.markdown(u"<h2 style='text-align: center;'>\U0001F6EB\U0001F308\u7f1d\u578b\u98ce\u573a\u5b9e\u9a8c\u6570\u636e\u5904\u7406\u5927\u5e08\U0001F308\U0001F6EB</h2>", unsafe_allow_html=True)
 
 # 初始条件输入
-st.subheader("🛠️初始条件")
+st.subheader(u"\U0001F527\u521d\u59cb\u6761\u4ef6")
 col1, col2 = st.columns(2)
 with col1:
-    v_inf = st.number_input("来流速度V∞ (m/s):", min_value=0.0, value=25.0, format="%.2f", help="输入风洞中的设定的风速")
-    p_atm = st.number_input("大气压力Patm (Pa):", min_value=0.0, value=101325.0, format="%.1f")
-    temp = st.number_input("环境温度T (K):", min_value=0.0, value=290.15, format="%.2f")
+    v_inf = st.number_input(u"来流速度V∞ (m/s):", min_value=0.0, value=25.0, format="%.2f", help=u"输入风洞中的设定的风速")
+    p_atm = st.number_input(u"大气压力Patm (Pa):", min_value=0.0, value=101325.0, format="%.1f")
+    temp = st.number_input(u"环境温度T (K):", min_value=0.0, value=290.15, format="%.2f")
 with col2:
-    chord = st.number_input("翼型弦长b (m):", min_value=0.0, value=0.2, format="%.3f")
-    g = st.number_input("重力加速度g (m/s²):", min_value=0.0, value=9.8, format="%.1f")
-    angle_of_attack = st.number_input("攻角α（度）:", min_value=-90.0, max_value=90.0, value=0.0)
+    chord = st.number_input(u"翼型弦长b (m):", min_value=0.0, value=0.2, format="%.3f")
+    g = st.number_input(u"重力加速度g (m/s²):", min_value=0.0, value=9.8, format="%.1f")
+    angle_of_attack = st.number_input(u"攻角α（度）:", min_value=-90.0, max_value=90.0, value=0.0)
 
 # 计算空气密度
 R = 287  # 空气的气体常数，单位：J/(kg·K)
@@ -588,26 +596,26 @@ a = np.sqrt(gamma * R * temp)
 # 计算马赫数
 Mach = v_inf / a
 # 显示计算结果
-st.subheader("💻计算得到")
+st.subheader(u"\U0001F4BB\u8ba1\u7b97\u5f97\u5230")
 col1, col2 = st.columns(2)
 with col1:
-    st.write(f"空气密度ρ: {rho:.3f} kg/m³")
-    st.write(f"动力粘度μ: {mu:.3e} kg/(m·s)")
-    st.write(f"运动粘度ν: {nu:.3e} m²/s")
+    st.write(u"空气密度ρ: {:.3f} kg/m³".format(rho))
+    st.write(u"动力粘度μ: {:.3e} kg/(m·s)".format(mu))
+    st.write(u"运动粘度ν: {:.3e} m²/s".format(nu))
 with col2:
-    st.write(f"雷诺数Re: {Re:.2e}")
-    st.write(f"声速a: {a:.2f} m/s")
-    st.write(f"马赫数Ma: {Mach:.4f}")
+    st.write(u"雷诺数Re: {:.2e}".format(Re))
+    st.write(u"声速a: {:.2f} m/s".format(a))
+    st.write(u"马赫数Ma: {:.4f}".format(Mach))
 
 # 创建一个表格用于输入水位高度差数据
-st.subheader("📏水位高度差数据输入")
-st.write("请输入实验测量的水位高度差原始数据∆h（单位：mm），系统已自动将高度差∆h×2，注意正负（相较于0m/s，0°攻角情况，即未开始实验时的观察水位下降了则为正，反之为负，一般输入的都是正数）:")
+st.subheader(u"\U0001F50F\u6c34\u4f4d\u9ad8\u5ea6\u5dee\u6570\u636e\u8f93\u5165")
+st.write(u"请输入实验测量的水位高度差原始数据∆h（单位：mm），系统已自动将高度差∆h×2，注意正负（相较于0m/s，0°攻角情况，即未开始实验时的观察水位下降了则为正，反之为负，一般输入的都是正数）:")
 
 # 创建多个 DataFrame 作为输入表格
-columns1 = ['前缘点'] + [f'上{i}' for i in range(1, 9)]
-columns2 = [f'上{i}' for i in range(9, 17)]
-columns3 = [f'下{i}' for i in range(1, 9)]
-columns4 = [f'下{i}' for i in range(9, 17)]
+columns1 = ['\u524d\u7f6e\u70b9'] + [f'\u4e0a{i}' for i in range(1, 9)]
+columns2 = [f'\u4e0a{i}' for i in range(9, 17)]
+columns3 = [f'\u4e0b{i}' for i in range(1, 9)]
+columns4 = [f'\u4e0b{i}' for i in range(9, 17)]
 
 input_df1 = pd.DataFrame([[0.0] * len(columns1)], columns=columns1)
 input_df2 = pd.DataFrame([[0.0] * len(columns2)], columns=columns2)
@@ -653,7 +661,7 @@ edited_df3 = edited_df3.applymap(process_input)
 edited_df4 = edited_df4.applymap(process_input)
 
 # 将转换后的数据显示给用户
-st.write("**转换后的数据h=-2∆h（单位：mm）:**", pd.concat([edited_df1, edited_df2, edited_df3, edited_df4], axis=1))
+st.write(u"**转换后的数据h=-2∆h（单位：mm）:**", pd.concat([edited_df1, edited_df2, edited_df3, edited_df4], axis=1))
 
 # 定义水的密度
 rho_water = 1000  # kg/m³
@@ -664,7 +672,7 @@ x_coords = [0] + [x/1000 for x in [12.5,24,35.5,47,58.5,70,81.5,93,104.5,116,127
 # 使用梯形积分公式计算法向力系数的函数
 def calculate_cn(cp_upper, cp_lower, x_coords, chord):
     if len(cp_upper) != len(cp_lower) or len(cp_upper) != len(x_coords) - 1:
-        raise ValueError("压力系数和坐标数据长度不匹配")
+        raise ValueError(u"压力系数和坐标数据长度不匹配")
     
     cn = 0
     # 处理驻点到第一个测量点的区间
@@ -700,7 +708,7 @@ def calculate_surface_slopes(x_coords, chord, t=0.12):
 # 计算轴向力系数Ca
 def calculate_ca(cp_upper, cp_lower, x_coords, chord):
     if len(cp_upper) != len(cp_lower) or len(cp_upper) != len(x_coords) - 1:
-        raise ValueError("压力系数和坐标数据长度不匹配")
+        raise ValueError(u"压力系数和坐标数据长度不匹配")
     
     slopes_upper, slopes_lower = calculate_surface_slopes(x_coords, chord)
     
@@ -721,7 +729,7 @@ def calculate_ca(cp_upper, cp_lower, x_coords, chord):
     return ca
 
 # 在"开始算"按钮的处理逻辑中添加以下代码
-if st.button("⚡开始计算⚡"):
+if st.button(u"\u26a1\u5f00\u59cb\u8ba1\u7b97\u26a1"):
     try:
         # 合并所有输入数据
         all_data = pd.concat([edited_df1, edited_df2, edited_df3, edited_df4], axis=1)
@@ -731,7 +739,7 @@ if st.button("⚡开始计算⚡"):
         
         # 检查数据点数量
         if len(delta_h_list) != 33:
-            st.error("请确保输入33个数据点。")
+            st.error(u"请确保输入33个数据点。")
         else:
             # 计算压强
             pressure = [p_atm + rho_water * g * h for h in delta_h_list]
@@ -757,10 +765,10 @@ if st.button("⚡开始计算⚡"):
             ca = calculate_ca(cp_upper, cp_lower, x_coords, chord)
             
             # 显示结果
-            st.header("📊计算结果")
+            st.header(u"\U0001F4C8\u8ba1\u7b97\u7ed3\u679c")
             
             # 压强结果
-            st.subheader("📌翼型表面静压P=(Patm+ρgh)（单位：Pa）：")
+            st.subheader(u"\U0001F4CC\u7f1d\u578b\u8868\u9762\u9759\u538bP=(Patm+ρgh)（\u5355\u4f4d\uff1aPa）：")
             pressure_df = pd.DataFrame([pressure], columns=all_data.columns)
             
             # 使用 st.dataframe 分多行显示压强结果
@@ -770,7 +778,7 @@ if st.button("⚡开始计算⚡"):
             st.dataframe(pressure_df.iloc[:, 25:], height=80)
             
             # 压力系数结果
-            st.subheader("📌翼型表面压力系数Cp=(P-P∞)/(0.5ρV∞^2)：")
+            st.subheader(u"\U0001F4CC\u7f1d\u578b\u8868\u9762\u538b\u529b\u7cfb\u6570Cp=(P-P∞)/(0.5ρV∞^2)：")
             cp_df = pd.DataFrame([cp], columns=all_data.columns)
             
             # 使用 st.dataframe 分多行显示压力系数结果
@@ -789,35 +797,35 @@ if st.button("⚡开始计算⚡"):
 
             # 修改export_data列表，添加V/V∞数据和x坐标数据
             export_data = [
-                ["初始条件", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["来流速度 (m/s)", v_inf, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["大气压力 (Pa)", p_atm, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["环境温度 (K)", temp, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["翼型弦长 (m)", chord, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["重力加速度 (m/s²)", g, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["攻角 (度)", angle_of_attack, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u521d\u59cb\u6761\u4ef6", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u6765\u6d41\u901f\u5ea6 (m/s)", v_inf, "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u5927\u6c14\u538b\u529b (Pa)", p_atm, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u73af\u5883\u6e29\u5ea6 (K)", temp, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u7ffc\u578b\u5f27\u957f (m)", chord, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u91cd\u529b\u52a0\u901f\u5ea6 (m/s²)", g, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u653b\u89d2 (\u5ea6)", angle_of_attack, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["测压点", "前缘点"] + [f"上{i}" for i in range(1, 17)] + [f"下{i}" for i in range(1, 17)],
-                ["x坐标 (m)"] + x_coords + x_coords[1:17],
-                ["x/b (b=0.2m)"] + [x/0.2 for x in x_coords] + [x/0.2 for x in x_coords[1:17]],
-                ["水位高度差 (m)"] + delta_h_list,
-                ["翼型表面静压 (Pa)"] + pressure,
-                ["翼型表面压力系数"] + cp ,
-                ["V/V∞"] + list(v_ratio),  # 添加V/V∞数据，只有上表面和前缘点有数据
+                [u"\u6d4b\u538b\u70b9", u"\u524d\u7f6e\u70b9"] + [f"\u4e0a{i}" for i in range(1, 17)] + [f"\u4e0b{i}" for i in range(1, 17)],
+                [u"x\u5750\u6807 (m)"] + x_coords + x_coords[1:17],
+                [u"x/b (b=0.2m)"] + [x/0.2 for x in x_coords] + [x/0.2 for x in x_coords[1:17]],
+                [u"\u6c34\u4f4d\u9ad8\u5ea6\u5dee (m)"] + delta_h_list,
+                [u"\u7ffc\u578b\u8868\u9762\u9759\u538b (Pa)"] + pressure,
+                [u"\u7ffc\u578b\u8868\u9762\u538b\u529b\u7cfb\u6570"] + cp ,
+                [u"V/V∞"] + list(v_ratio),  # 添加V/V∞数据，只有上表面和前缘点有数据
                 ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["计算得到", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["空气密度ρ (kg/m³)", rho, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["动力粘度μ (kg/(m·s))", mu, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["运动粘度ν (m²/s)", nu, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["雷诺数Re", Re, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["声速a (m/s)", a, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["马赫数Ma", Mach, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u8ba1\u7b97\u5f97\u5230", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u7a7a\u6c14\u5bc6\u5ea6ρ (kg/m³)", rho, "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u52a8\u529b\u7c7b\u7ea6μ (kg/(m·s))", mu, "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u8fd0\u52a8\u7c7b\u7ea6ν (m²/s)", nu, "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u96f7\u8d1d\u6570Re", Re, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u58f0\u901fa (m/s)", a, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u9a6c\u8d1d\u6570Ma", Mach, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["力系数", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["法向力系数 Cn", cn, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["轴向力系数 Ca", ca, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["升力系数 Cl", cl, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                ["阻力系数 Cd", cd, "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+                [u"\u529b\u7cfb\u6570", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u6cd5\u5411\u529b\u7cfb\u6570 Cn", cn, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u8f74\u5411\u529b\u7cfb\u6570 Ca", ca, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u5347\u529b\u7cfb\u6570 Cl", cl, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                [u"\u963b\u529b\u7cfb\u6570 Cd", cd, "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
             ]
 
 # 创建DataFrame
@@ -827,10 +835,10 @@ if st.button("⚡开始计算⚡"):
             csv = export_df.to_csv(index=False, header=False)
             
             # 创建文件名，包含来流速度和攻角信息
-            file_name = f"NACA0012风洞实验数据-{v_inf:.1f}风速-{angle_of_attack:.1f}°攻角.csv"
+            file_name = f"NACA0012\u98ce\u573a\u5b9e\u9a8c\u6570\u636e-{v_inf:.1f}\u98ce\u901f-{angle_of_attack:.1f}\u5ea6\u653b\u89d2.csv"
             
             # 绘制Cp-x曲线和压力系数分布矢量图
-            st.subheader("📌Cp-x曲线和压力系数分布矢量图")
+            st.subheader(u"\U0001F4C8 Cp-x\u66f2\u7ebf\u548c\u538b\u529b\u7cfb\u6570\u5206\u5e03\u77e2\u91cf\u56fe")
 
             # 准备数据
             x_normalized = [0] + [x / chord for x in x_coords] + [1]
@@ -957,11 +965,11 @@ if st.button("⚡开始计算⚡"):
             ax1.set_ylim(-0.6, 0.6)
             ax1.set_xlabel('x/c')
             ax1.set_ylabel('y/c')
-            ax1.set_title('NACA 0012 压力系数分布矢量图')
+            ax1.set_title(u'NACA 0012 \u538b\u529b\u7cfb\u6570\u5206\u5e03\u77e2\u91cf\u56fe')
             ax1.grid(True, linestyle=':', alpha=0.7)
             # 添加压力系数说明
-            ax1.text(0.05, 0.90, '蓝：负压力系数', color='b', transform=ax1.transAxes, verticalalignment='top')
-            ax1.text(0.05, 0.85, '红：正压力系数', color='r', transform=ax1.transAxes, verticalalignment='top')
+            ax1.text(0.05, 0.90, u'\u84dd\uff1a\u8d1f\u538b\u529b\u7cfb\u6570', color='b', transform=ax1.transAxes, verticalalignment='top')
+            ax1.text(0.05, 0.85, u'\u7ea2\uff1a\u6b63\u538b\u529b\u7cfb\u6570', color='r', transform=ax1.transAxes, verticalalignment='top')
 
             # 分段插值
             def piecewise_interpolation_upper(x, y):
@@ -991,8 +999,8 @@ if st.button("⚡开始计算⚡"):
             cp_lower_smooth = piecewise_interpolation_lower(x_normalized, cp_lower)
 
             # 绘制光滑曲线
-            ax2.plot(x_smooth, cp_upper_smooth, 'b-', label="上翼面")
-            ax2.plot(x_smooth, cp_lower_smooth, 'r-', label="下翼面")
+            ax2.plot(x_smooth, cp_upper_smooth, 'b-', label=u"\u4e0a\u7ffc\u9762")
+            ax2.plot(x_smooth, cp_lower_smooth, 'r-', label=u"\u4e0b\u7ffc\u9762")
 
             # 绘制原始数据点
             ax2.scatter(x_normalized[1:-1], cp_upper[1:-1], color='blue', s=30, zorder=5)
@@ -1023,7 +1031,7 @@ if st.button("⚡开始计算⚡"):
             ax2.grid(True, linestyle=':', alpha=0.7)
 
             # 设置标题
-            fig.suptitle(f'NACA 0012 翼型和压力系数分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)', fontsize=16)
+            fig.suptitle(u'NACA 0012 \u7ffc\u578b\u548c\u538b\u529b\u7cfb\u6570\u5206\u5e03 (\u03b1={}\u00b0, Re={:.2e}, V\u221e={:.2f} m/s)'.format(angle_of_attack, Re, v_inf), fontsize=16)
 
             # 调整子图之间的间距
             plt.tight_layout()
@@ -1036,18 +1044,18 @@ if st.button("⚡开始计算⚡"):
             plt.savefig(buffer, format='png', dpi=300, bbox_inches='tight')
             buffer.seek(0)
             st.download_button(
-                label="📥下载Cp-x曲线图",
+                label=u"\U0001F4E5\u4e0b\u8f7DCp-x\u66f2\u7ebf\u56fe",
                 data=buffer,
-                file_name=f"NACA0012_Cp-x曲线_{v_inf:.1f}m/s风速_{angle_of_attack:.1f}度攻角.png",
+                file_name=f"NACA0012_Cp-x\u66f2\u7ebf_{v_inf:.1f}m_s\u98ce\u901f_{angle_of_attack:.1f}\u5ea6\u653b\u89d2.png",
                 mime="image/png"
             )
 
             # 创建DataFrame
-            columns = ['前缘'] + [f'上{i}' for i in range(1, 17)]
+            columns = ['\u524d\u7f6e'] + [f'\u4e0a{i}' for i in range(1, 17)]
             v_ratio_df = pd.DataFrame([v_ratio], columns=columns)
 
             # 显示结果
-            st.subheader("📌V/V∞=√(1-Cp)计算结果:")
+            st.subheader(u"\U0001F4C8V/V∞=√(1-Cp)\u8ba1\u7b97\u7ed3\u679c:")
             st.dataframe(v_ratio_df)
 
             # 准备x坐标数据
@@ -1063,10 +1071,10 @@ if st.button("⚡开始计算⚡"):
             v_ratio_smooth = spl(x_smooth)
 
             # 绘制插值曲线
-            ax.plot(x_smooth, v_ratio_smooth, 'b-', label="插值曲线")
+            ax.plot(x_smooth, v_ratio_smooth, 'b-', label=u"\u63d2\u503c\u66f2\u7ebf")
 
             # 绘制原始数据点
-            ax.scatter(x_normalized, v_ratio, color='blue', s=30, zorder=5, label="原始数据点")
+            ax.scatter(x_normalized, v_ratio, color='blue', s=30, zorder=5, label=u"\u539f\u59cb\u6570\u636e\u70b9")
             
             # 绘制从原点到前缘点的直线
             ax.plot([0, x_normalized[0]], [0, v_ratio[0]], 'b-', linewidth=2)
@@ -1091,7 +1099,7 @@ if st.button("⚡开始计算⚡"):
             ax.grid(True, linestyle=':', alpha=0.7)
 
             # 设置标题
-            ax.set_title(f'NACA 0012 V/V∞ 分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)')
+            ax.set_title(u'NACA 0012 V/V∞ \u5206\u5e03 (\u03b1={}\u00b0, Re={:.2e}, V\u221e={:.2f} m/s)'.format(angle_of_attack, Re, v_inf))
 
             # 设置中文字体
             plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS']
@@ -1105,35 +1113,35 @@ if st.button("⚡开始计算⚡"):
             plt.savefig(buffer, format='png', dpi=300, bbox_inches='tight')
             buffer.seek(0)
             st.download_button(
-                label="📥下载V/V∞-x曲线图",
+                label=u"\U0001F4E5\u4e0b\u8f7DV/V∞-x\u66f2\u7ebf\u56fe",
                 data=buffer,
-                file_name=f"NACA0012_V/V∞-x曲线_{v_inf:.1f}m/s风速_{angle_of_attack:.1f}度攻角.png",
+                file_name=f"NACA0012_V_V∞-x\u66f2\u7ebf_{v_inf:.1f}m_s\u98ce\u901f_{angle_of_attack:.1f}\u5ea6\u653b\u89d2.png",
                 mime="image/png"
             )
 
             # 在V/V∞-x曲线下方添加力系数显示和CSV下载按钮
 
             # 显示力系数结果
-            st.subheader("📌力系数：")
+            st.subheader(u"\U0001F4C8\u529b\u7cfb\u6570\uff1a")
             col1, col2 = st.columns(2)
 
             with col1:
-                st.write(f"法向力系数 Cn = {cn:.4f}")
-                st.write(f"轴向力系数 Ca = {ca:.4f}")
+                st.write(u"\u6cd5\u5411\u529b\u7cfb\u6570 Cn = {:.4f}".format(cn))
+                st.write(u"\u8f74\u5411\u529b\u7cfb\u6570 Ca = {:.4f}".format(ca))
 
             with col2:
-                st.write(f"升力系数 Cl = {cl:.4f}")
-                st.write(f"阻力系数 Cd = {cd:.4f}")
+                st.write(u"\u5347\u529b\u7cfb\u6570 Cl = {:.4f}".format(cl))
+                st.write(u"\u963b\u529b\u7cfb\u6570 Cd = {:.4f}".format(cd))
 
             # 创建CSV文件，不包含索引和列名
             csv = export_df.to_csv(index=False, header=False)
 
             # 创建文件名，包含来流速度和攻角信息
-            file_name = f"NACA0012风洞实验数据-{v_inf:.1f}风速-{angle_of_attack:.1f}°攻角.csv"
+            file_name = f"NACA0012\u98ce\u573a\u5b9e\u9a8c\u6570\u636e-{v_inf:.1f}\u98ce\u901f-{angle_of_attack:.1f}\u5ea6\u653b\u89d2.csv"
 
             # 添加下载数据为CSV的按钮（使用唯一的key）
             st.download_button(
-                label="📥下载数据为CSV表格",
+                label=u"\U0001F4E5\u4e0b\u8f7d\u6570\u636e\u4e3aCSV\u8868\u683c",
                 data=csv,
                 file_name=file_name,
                 mime="text/csv",
@@ -1147,17 +1155,17 @@ if st.button("⚡开始计算⚡"):
                 export_df.to_csv(csv_path, index=False, header=False)
                 
                 # 保存Cp-x曲线图
-                cp_x_path = os.path.join(tmpdirname, f"NACA0012_Cp-x曲线_{v_inf:.1f}m_s风速_{angle_of_attack:.1f}度攻角.png")
+                cp_x_path = os.path.join(tmpdirname, f"NACA0012_Cp-x\u66f2\u7ebf_{v_inf:.1f}m_s\u98ce\u901f_{angle_of_attack:.1f}\u5ea6\u653b\u89d2.png")
                 plt.figure(1)
                 plt.savefig(cp_x_path, dpi=300, bbox_inches='tight')
                 
                 # 保存V/V∞-x曲线图
-                v_ratio_path = os.path.join(tmpdirname, f"NACA0012_V_V∞-x曲线_{v_inf:.1f}m_s风速_{angle_of_attack:.1f}度攻角.png")
+                v_ratio_path = os.path.join(tmpdirname, f"NACA0012_V_V∞-x\u66f2\u7ebf_{v_inf:.1f}m_s\u98ce\u901f_{angle_of_attack:.1f}\u5ea6\u653b\u89d2.png")
                 plt.figure(2)
                 plt.savefig(v_ratio_path, dpi=300, bbox_inches='tight')
                 
                 # 创建一个ZIP文件
-                zip_path = os.path.join(tmpdirname, f"NACA0012风洞实验数据_{v_inf:.1f}m_s风速_{angle_of_attack:.1f}度攻角.zip")
+                zip_path = os.path.join(tmpdirname, f"NACA0012\u98ce\u573a\u5b9e\u9a8c\u6570\u636e_{v_inf:.1f}m_s\u98ce\u901f_{angle_of_attack:.1f}\u5ea6\u653b\u89d2.zip")
                 with zipfile.ZipFile(zip_path, 'w') as zipf:
                     zipf.write(csv_path, os.path.basename(csv_path))
                     zipf.write(cp_x_path, os.path.basename(cp_x_path))
@@ -1167,14 +1175,12 @@ if st.button("⚡开始计算⚡"):
                 with open(zip_path, "rb") as f:
                     bytes = f.read()
                 st.download_button(
-                    label="📥一键下载所有数据(CSV和图片)",
+                    label=u"\U0001F4E5\u4e00\u952e\u4e0b\u8f7d\u6240\u6709\u6570\u636e(CSV\u548c\u56fe\u7247)",
                 data=bytes,
-                file_name=f"NACA0012数据_{v_inf:.1f}m_s风速_{angle_of_attack:.1f}度攻角.zip",
+                file_name=f"NACA0012\u6570\u636e_{v_inf:.1f}m_s\u98ce\u901f_{angle_of_attack:.1f}\u5ea6\u653b\u89d2.zip",
                 mime="application/zip"
                 )
 
 
     except ValueError as e:
-        st.error(f"计算错误: {str(e)}")
-    # 在所有主要内容之后关闭div
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.error(u"计算错误: {}".format(str(e)))
