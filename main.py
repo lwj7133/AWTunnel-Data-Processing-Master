@@ -321,7 +321,7 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
             ax.set_title('不同V∞下的Cl-α曲线')
             
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['SimHei']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图
@@ -418,7 +418,7 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cd-α曲线"):
             ax.set_title('不同V∞下的Cd-α曲线')
             
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['SimHei']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图
@@ -526,7 +526,7 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
             ax.set_title('不同攻角下的升力系数-雷诺数曲线')
             
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['SimHei']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图形
@@ -1094,7 +1094,7 @@ if st.button("⚡开始计算⚡"):
             ax.set_title(f'NACA 0012 V/V∞ 分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)')
 
             # 设置中文字体
-            plt.rcParams['font.sans-serif'] = ['SimHei']
+            plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
             plt.rcParams['axes.unicode_minus'] = False
 
             # 在Streamlit中显示图形
