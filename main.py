@@ -13,15 +13,24 @@ import os
 import tempfile
 import matplotlib.font_manager as fm
 
+# 获取当前脚本的绝对路径
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 # 设置自定义字体路径
-font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf')
+font_path = os.path.join(current_dir, 'fonts', 'SimHei.ttf')
 
-# 添加字体文件
-fm.fontManager.addfont(font_path)
-
-# 设置matplotlib使用的字体
-plt.rcParams['font.sans-serif'] = ['SimHei'] + plt.rcParams['font.sans-serif']
-plt.rcParams['axes.unicode_minus'] = False
+# 检查文件是否存在
+if os.path.exists(font_path):
+    # 添加字体文件
+    fm.fontManager.addfont(font_path)
+    
+    # 设置matplotlib使用的字体
+    plt.rcParams['font.sans-serif'] = ['SimHei'] + plt.rcParams['font.sans-serif']
+    plt.rcParams['axes.unicode_minus'] = False
+else:
+    print(f"警告：字体文件不存在于路径 {font_path}")
+    # 如果字体文件不存在，使用系统默认字体
+    plt.rcParams['font.sans-serif'] = ['DejaVu Sans'] + plt.rcParams['font.sans-serif']
 
 # 在主要内容之前添加以下代码
 st.markdown(
@@ -600,7 +609,7 @@ with col2:
 
 # 创建一个表格用于输入水位高度差数据
 st.subheader("📏水位高度差数据输入")
-st.write("请输入实验测量的水位高度差原始数据∆h（单位：mm），系统已自动将高度差∆h×2，注意正负（相较于0m/s，0°攻角情况，即未开始实验时的观察水位下降了则为正，反之为负，一般输入的都是正数）:")
+st.write("请输入实验测量的水位高度差原始数据∆h（单位：mm），系统已自动将高度差∆h×2，注意正负（相较于0m/s，0°攻角情况，即未始实验时的观察水位下降了则为正，反之为负，一般输入的都是正数）:")
 
 # 创建多个 DataFrame 作为输入表格
 columns1 = ['前缘点'] + [f'上{i}' for i in range(1, 9)]
