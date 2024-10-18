@@ -11,19 +11,24 @@ import re
 import zipfile
 import os
 import tempfile
-import matplotlib.font_manager as fm
-
-# 设置matplotlib使用的字体
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
 
 # 在主要内容之前添加以下代码
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC&display=swap');
-    html, body, [class*="css"] {
-        font-family: 'Noto Sans SC', sans-serif;
+    .right-sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 250px;
+        height: 100%;
+        background-color: #f0f2f6;
+        padding: 20px;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+    .main-content {
+        margin-right: 250px;
     }
     </style>
     """,
@@ -192,7 +197,7 @@ with st.sidebar.expander("🤖 AI-流体力学专家（✅连续对话/🌐实�
                 
                 image_url = None
                 if uploaded_file:
-                    # 将图片转换为base64���
+                    # 将图片转换为base64编码
                     import base64
                     image_base64 = base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
                     image_url = f"data:image/jpeg;base64,{image_base64}"
@@ -315,6 +320,10 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cl-α曲线"):
             # 设置标题
             ax.set_title('不同V∞下的Cl-α曲线')
             
+            # 修改字体设置
+            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK', 'PingFang SC']
+            plt.rcParams['axes.unicode_minus'] = False
+            
             # 在侧边栏中显示图
             st.pyplot(fig)
             
@@ -407,6 +416,10 @@ with st.sidebar.expander("📈 绘制不同V∞下的Cd-α曲线"):
             
             # 设置标题
             ax.set_title('不同V∞下的Cd-α曲线')
+            
+            # 修改字体设置
+            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK', 'PingFang SC']
+            plt.rcParams['axes.unicode_minus'] = False
             
             # 在侧边栏中显示图
             st.pyplot(fig)
@@ -512,6 +525,10 @@ with st.sidebar.expander("📈 绘制不同α下的Cl-Re曲线"):
             # 设置标题
             ax.set_title('不同攻角下的升力系数-雷诺数曲线')
             
+            # 修改字体设置
+            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK', 'PingFang SC']
+            plt.rcParams['axes.unicode_minus'] = False
+            
             # 在侧边栏中显示图形
             st.pyplot(fig)
             
@@ -584,7 +601,7 @@ with col2:
 
 # 创建一个表格用于输入水位高度差数据
 st.subheader("📏水位高度差数据输入")
-st.write("请输入实验测量的水位高度差原始数据∆h（单位：mm），系统已自动将高度差∆h×2，注意正负（相较于0m/s，0°攻角情况，即未开始实验时的观察水位下降了则为，反之为负，一般输入的都是正数）:")
+st.write("请输入实验测量的水位高度差原始数据∆h（单位：mm），系统已自动将高度差∆h×2，注意正负（相较于0m/s，0°攻角情况，即未开始实验时的观察水位下降了则为正，反之为负，一般输入的都是正数）:")
 
 # 创建多个 DataFrame 作为输入表格
 columns1 = ['前缘点'] + [f'上{i}' for i in range(1, 9)]
@@ -786,7 +803,7 @@ if st.button("⚡开始计算⚡"):
                 ["水位高度差 (m)"] + delta_h_list,
                 ["翼型表面静压 (Pa)"] + pressure,
                 ["翼型表面压力系数"] + cp ,
-                ["V/V∞"] + list(v_ratio),  # 添加V/V∞数，只有上表面和前缘点有数据
+                ["V/V∞"] + list(v_ratio),  # 添加V/V∞数据，只有上表面和前缘点有数据
                 ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
                 ["计算得到", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
                 ["空气密度ρ (kg/m³)", rho, "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
@@ -1075,6 +1092,10 @@ if st.button("⚡开始计算⚡"):
 
             # 设置标题
             ax.set_title(f'NACA 0012 V/V∞ 分布 (α={angle_of_attack}°, Re={Re:.2e}, V∞={v_inf:.2f} m/s)')
+
+            # 设置中文字体
+            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK', 'PingFang SC']
+            plt.rcParams['axes.unicode_minus'] = False
 
             # 在Streamlit中显示图形
             st.pyplot(fig)
