@@ -13,7 +13,7 @@ import zipfile
 import os
 import tempfile
 import json
-
+import html
 
 # 在主要内容之前添加以下代码
 font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf')
@@ -105,6 +105,7 @@ with st.sidebar.expander("🤖 Cookie-流体力学专家（✅连续对话/🌐�
 
     # 在 st.sidebar.expander 内部，API 设置之前添加以下代码
     system_message = """你叫Cookie，是一个专业的流体力学AI助手。你能够回答关于流体力学和飞行器设计的问题，解释相关概念，并协助分析流体动力学数据和图像。请用严谨、专业的语言回答问题，多举一些生动的例子来说明问题，必要时使用数学公式来解释概念。回答时多用一些emoji，生动活泼，对用户多鼓励，多关心"""
+    # API设置
 
     # API设置
     if 'api_key' not in st.session_state:
@@ -154,13 +155,51 @@ with st.sidebar.expander("🤖 Cookie-流体力学专家（✅连续对话/🌐�
     # 创建一个空的容器用于显示AI响应
     ai_response_container = st.empty()
 
+    # 修改自定义CSS样式部分
+
+    st.markdown("""
+<style>
+.chat-message {
+    padding: 0.5rem; 
+    border-radius: 0.5rem; 
+    margin-bottom: 1rem; 
+    display: flex;
+    align-items: flex-start;
+}
+.chat-message.user {
+    background-color: #E6FFE6;  /* 淡绿色 */
+    justify-content: flex-end;
+}
+.chat-message.bot {
+    background-color: #FFE6E6;  /* 淡粉色 */
+}
+.chat-message .message {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    color: #333;  /* 深灰色文字，确保在浅色背景上可读 */
+}
+.chat-message.user .message {
+    text-align: right;
+}
+</style>
+""", unsafe_allow_html=True)
+
     # 显示聊天历史
     for message in st.session_state.chat_history:
         if isinstance(message, tuple) and message[0] == "image":
             st.image(message[1], caption="上传图片", use_column_width=True)
+        elif message.startswith("你:"):
+            st.markdown(f'''
+            <div class="chat-message user">
+                <div class="message"><strong>:You</strong> 🙋<br>{html.escape(message[3:])}</div>
+            </div>
+            ''', unsafe_allow_html=True)
         elif message.startswith("AI:"):
-            st.markdown("AI:")
-            st.markdown(post_process_latex(message[3:]))
+            st.markdown(f'''
+            <div class="chat-message bot">
+                <div class="message">🤖 <strong>Cookie:</strong><br>{post_process_latex(message[3:])}</div>
+            </div>
+            ''', unsafe_allow_html=True)
         else:
             st.text(message)
 
@@ -226,25 +265,37 @@ with st.sidebar.expander("🤖 Cookie-流体力学专家（✅连续对话/🌐�
         except Exception as e:
             return f"API请求错误: {str(e)}"
 
-    # 创建输入框
-    user_input = st.text_input("在这里输入你的问题:")
 
-    # 添加文件上传器
-    uploaded_file = st.file_uploader("上传图片", type=["png", "jpg", "jpeg"])
 
-    # 创建两列布局
-    col1, col2 = st.columns(2)
+    # 创建一个表单来包含输入框、发送按钮和清空聊天按钮
+    with st.form(key="chat_form", clear_on_submit=True):
+        # 创建三列布局
+        col1, col2, col3 = st.columns([3.7, 0.6, 0.6])
+        
+        # 在第一列放置输入框
+        with col1:
+            user_input = st.text_input("在这里输入你的问题:", key="user_input", label_visibility="collapsed", placeholder="在这里输入你的问题...")
+            
+        # 在第二列放置发送按钮
+        with col2:
+            submit_button = st.form_submit_button(
+                "**✈️**",
+                help="发送消息"  # 当鼠标悬停时显示的提示文本
+            )
+        
+        # 在第三列放置清空聊天按钮
+        with col3:
+            clear_button = st.form_submit_button(
+                "🔄",
+                help="清空当前对话，开始新会话"
+            )
+        
+        # 添加文件上传器，并应用自定义样式
+        uploaded_file = st.file_uploader("上传图片", type=["png", "jpg", "jpeg"], key="file_uploader")
+        st.markdown('<style>div[data-testid="stFileUploader"] {margin-bottom: -15px;}</style>', unsafe_allow_html=True)
 
-    # 在第一列放置发送按钮
-    with col1:
-        send_button = st.button("发送", key="send_button")
-
-    # 在第二列放置清空聊天按钮
-    with col2:
-        clear_button = st.button("清空聊天", key="clear_chat_button")
-
-    # 处理发送按钮点击事件
-    if send_button:
+    # 处理表单提交
+    if submit_button:
         if api_key_to_use and (user_input or uploaded_file):
             # 将用户输入添加到聊天历史和上下文
             if user_input:
@@ -264,20 +315,20 @@ with st.sidebar.expander("🤖 Cookie-流体力学专家（✅连续对话/🌐�
                 ]})
             
             # 调用API
-            with st.spinner('AI正在思考中...'):
+            with st.spinner('🤖 Cookie正在思考中...'):
                 ai_response = stream_api_call(st.session_state.chat_context)
             
             # 更新聊天历史和上下文
             processed_response = post_process_latex(ai_response)
+            # 移除这一行，因为用户消息已经在前面添加过了
+            # st.session_state.chat_history.append(f"你: {user_input}")
             st.session_state.chat_history.append(f"AI: {processed_response}")
             st.session_state.chat_context.append({"role": "assistant", "content": ai_response})
             
             # 显示AI响应
-            ai_response_container.markdown("AI:")
-            st.markdown(processed_response)  # 直接使用已经处理过的响应
+            st.markdown(f'<div class="chat-message bot"><div class="message"><strong>AI:</strong><br>{processed_response}</div></div>', unsafe_allow_html=True)
             
-            # 清空输入框和上传的文件
-            st.session_state.user_input = ""
+            # 清空上传的文件
             st.session_state.last_uploaded_image = None
             
             # 重新加载页面以显示新消息
@@ -294,7 +345,14 @@ with st.sidebar.expander("🤖 Cookie-流体力学专家（✅连续对话/🌐�
         st.rerun()
 
     # 添加声明
-    st.markdown("⚠️ **声明：** 永远不要完全信任AI，AI也可能会犯错，回答仅供参考。重要数据请自行分辨和验证。")
+    st.markdown(
+        """
+        <div style="background-color: #E6F3FF; padding: 10px; border-radius: 5px; color: #003366;">
+        ⚠️ <strong>声明：</strong> 永远不要完全信任AI，AI也可能会犯错，回答仅供参考。重要数据请自行分辨和验证。
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # 在侧边栏添加分隔线
 st.sidebar.markdown("---")
@@ -776,7 +834,55 @@ def calculate_ca(cp_upper, cp_lower, x_coords, chord):
     
     return ca
 
-# 在"开始算"按钮的处理逻辑中添加以下代码
+# 创建一个自定义样式的按钮
+st.markdown(
+    """
+    <style>
+    .stButton > button {
+        color: #ffffff;
+        background-color: #87CEEB; /* 天蓝色 */
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 6px 3px;
+        cursor: pointer;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -2px 5px rgba(255,255,255,0.2);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: all 0.4s;
+    }
+    .stButton > button:hover {
+        background-color: #5F9EA0; /* 深天蓝色 */
+        box-shadow: 0 6px 8px rgba(0,0,0,0.15), inset 0 -4px 9px rgba(0,0,0,0.2);
+        transform: translateY(-2px);
+    }
+    .stButton > button:hover::before {
+        left: 100%;
+    }
+    .stButton > button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1), inset 0 -1px 3px rgba(0,0,0,0.2);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# 使用自定义样式的按钮
 if st.button("⚡开始计算⚡"):
     try:
         # 合并所有输入数据
