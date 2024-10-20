@@ -45,12 +45,14 @@ st.markdown(
 
 # 在侧边栏添加署名
 st.sidebar.markdown("""
-    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #E6F3FF, #B3E0FF); border-radius: 15px; box-shadow: 0 0 20px rgba(179, 224, 255, 0.7), 0 0 40px rgba(230, 243, 255, 0.5);">
+    <div style="text-align: center; padding: 20px;
+                     background: linear-gradient(135deg, #E6F3FF, #B3E0FF);
+                     border-radius: 15px; box-shadow: 0 0 20px rgba(179, 224, 255, 0.7), 0 0 40px rgba(230, 243, 255, 0.5);">
         <h4 style="color: #1a5f7a; margin: 0 0 5px 0; font-weight: bold; font-family: 'SimHei', sans-serif; text-shadow: 0 0 5px #B3E0FF;">🛫✨ Airfoil Wind Tunnel Data Processing Master ✨🛫</h4>
         <p style="color: #3498db; font-size: 0.9em; font-style: italic; margin: 0 0 5px 0; text-shadow: 0 0 3px #E6F3FF;">Professional / Efficient / Scientific</p>
         <hr style="border: 0; height: 1px; background-image: linear-gradient(to right, rgba(179, 224, 255, 0), rgba(179, 224, 255, 0.75), rgba(179, 224, 255, 0)); margin: 0;">
         <p style="color: #34495e; font-size: 1.1em; margin: 10px 0; font-family: 'SimHei', sans-serif; text-shadow: 0 0 3px #B3E0FF;">👨‍💻 Developed By LuWeiJing</p>
-        <p style="color: #2c3e50; font-size: 1em; margin: 5px 0; text-shadow: 0 0 2px #E6F3FF;">🚀 Version: 2.0.0 | 📅 September 2024</p>
+        <p style="color: #2c3e50; font-size: 1em; margin: 5px 0; text-shadow: 0 0 2px #E6F3FF;">🚀 Version: 2.1.0 | 📅 September 2024</p>
         <p style="color: #546e7a; font-size: 0.9em; margin: 10px 0 0 0;">
             <span style="margin-right: 5px; text-shadow: 0 0 2px #B3E0FF;">💖 欢迎使用</span>
             <span style="margin-left: 5px;">|</span>
@@ -103,34 +105,66 @@ with st.sidebar.expander("🤖 Cookie-流体力学专家（✅连续对话/🌐�
     if 'last_uploaded_image' not in st.session_state:
         st.session_state.last_uploaded_image = None
 
-    # 在 st.sidebar.expander 内部，API 设置之前添加以下代码
     system_message = """你叫Cookie，是一个专业的流体力学AI助手。你能够回答关于流体力学和飞行器设计的问题，解释相关概念，并协助分析流体动力学数据和图像。请用严谨、专业的语言回答问题，多举一些生动的例子来说明问题，必要时使用数学公式来解释概念。回答时多用一些emoji，生动活泼，对用户多鼓励，多关心"""
-    # API设置
 
-    # API设置
-    if 'api_key' not in st.session_state:
-        st.session_state.api_key = "sk-1xOLoJ1NRluWwc5oC5Cc8f32E8D940C791AdEb8b656bD4C6"
-    if 'api_base' not in st.session_state:
-        st.session_state.api_base = "https://api.tu-zi.com"
-    if 'model' not in st.session_state:
-        st.session_state.model = "gpt-4o-all"
-    
-    api_key = st.text_input("输入API密钥", value="默认", type="password")
-    api_base = st.text_input("输入API基础URL", value="默认")
-    model = st.text_input("输入模型名称", value="默认")
-    
-    # 使用实际的默认值，而不是"默认"字符串
-    api_key_to_use = st.session_state.api_key if api_key == "默认" else api_key
-    api_base_to_use = st.session_state.api_base if api_base == "默认" else api_base
-    
-    model_to_use = st.session_state.model if model == "默认" else model
-    
-    if api_key != "默认":
-        st.session_state.api_key = api_key
-    if api_base != "默认":
-        st.session_state.api_base = api_base
-    if model != "默认":
-        st.session_state.model = model
+    # API设置表单
+    with st.form(key="api_settings_form"):
+        col1, col2, col3 = st.columns([2, 2, 2])
+        with col1:
+            st.subheader("API 设置")
+        with col2:
+            submit_button = st.form_submit_button("保存新设置")
+        with col3:
+            reset_button = st.form_submit_button("恢复默认设置")
+        
+        default_api_key = "sk-1xOLoJ1NRluWwc5oC5Cc8f32E8D940C791AdEb8b656bD4C6"
+        default_api_base = "https://api.tu-zi.com"
+        default_model = "gpt-4o-all"
+        
+        if 'api_key' not in st.session_state:
+            st.session_state.api_key = default_api_key
+        if 'api_base' not in st.session_state:
+            st.session_state.api_base = default_api_base
+        if 'model' not in st.session_state:
+            st.session_state.model = default_model
+        
+        if 'show_default' not in st.session_state:
+            st.session_state.show_default = {'api_key': True, 'api_base': True, 'model': True}
+        
+        api_key = st.text_input("API密钥", 
+                                value="默认" if st.session_state.show_default['api_key'] else st.session_state.api_key, 
+                                type="password", 
+                                key="api_key_input")
+        api_base = st.text_input("API基础URL", 
+                                 value="默认" if st.session_state.show_default['api_base'] else st.session_state.api_base, 
+                                 key="api_base_input")
+        model = st.text_input("模型名称", 
+                              value="默认" if st.session_state.show_default['model'] else st.session_state.model, 
+                              key="model_input")
+        
+        if submit_button:
+            st.session_state.api_key = default_api_key if api_key == "默认" else api_key
+            st.session_state.api_base = default_api_base if api_base == "默认" else api_base
+            st.session_state.model = default_model if model == "默认" else model
+            st.session_state.show_default = {
+                'api_key': api_key == "默认",
+                'api_base': api_base == "默认",
+                'model': model == "默认"
+            }
+            st.success("API设置已更新")
+        
+        if reset_button:
+            st.session_state.api_key = default_api_key
+            st.session_state.api_base = default_api_base
+            st.session_state.model = default_model
+            st.session_state.show_default = {'api_key': True, 'api_base': True, 'model': True}
+            st.success("API设置已恢复为默认值")
+            st.rerun()  # 重新运行应用以更新输入框的显示
+
+    # 使用保存的设置
+    api_key_to_use = st.session_state.api_key
+    api_base_to_use = st.session_state.api_base
+    model_to_use = st.session_state.model
 
     def latex_to_streamlit(text):
         """将文本中的LaTeX公式转换为Streamlit支持的格式"""
@@ -187,7 +221,7 @@ with st.sidebar.expander("🤖 Cookie-流体力学专家（✅连续对话/🌐�
     # 显示聊天历史
     for message in st.session_state.chat_history:
         if isinstance(message, tuple) and message[0] == "image":
-            st.image(message[1], caption="上传图片", use_column_width=True)
+            st.image(message[1], use_column_width=True)
         elif message.startswith("你:"):
             st.markdown(f'''
             <div class="chat-message user">
@@ -353,6 +387,7 @@ with st.sidebar.expander("🤖 Cookie-流体力学专家（✅连续对话/🌐�
         """,
         unsafe_allow_html=True
     )
+
 
 # 在侧边栏添加分隔线
 st.sidebar.markdown("---")
@@ -667,8 +702,37 @@ def sutherland_viscosity(T):
     S = 110.4  # 萨瑟兰常数(K)
     return mu0 * (T/T0)**(3/2) * (T0 + S) / (T + S)
 
+
 # 标题
-st.markdown("<h2 style='text-align: center;'>🛫✨翼型风洞实验数据处理大师✨🛫</h2>", unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+    @keyframes shine {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+    .animated-title {
+        text-align: center;
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #000000;
+        background: linear-gradient(90deg, #FFF2B2, #FFB6C1, #B0E0E6, #98FB98, #FFF2B2);
+        background-size: 200% auto;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        animation: shine 5s linear infinite;
+    }
+    .animated-title span {
+        display: inline-block;
+    }
+    </style>
+    <div class="animated-title">
+        <span>🛫</span><span>翼</span><span>型</span><span>风</span><span>洞</span><span>实</span><span>验</span><span>数</span><span>据</span><span>处</span><span>理</span><span>大</span><span>师</span><span>🛫</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # 初始条件输入
 st.subheader("🛠️初始条件")
@@ -838,9 +902,20 @@ def calculate_ca(cp_upper, cp_lower, x_coords, chord):
 st.markdown(
     """
     <style>
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px #ff00de, 0 0 10px #ff00de, 0 0 15px #ff00de, 0 0 20px #ff00de; }
+        25% { box-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff, 0 0 20px #00ffff; }
+        50% { box-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00, 0 0 15px #ffff00, 0 0 20px #ffff00; }
+        75% { box-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 15px #00ff00, 0 0 20px #00ff00; }
+        100% { box-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 15px #ff0000, 0 0 20px #ff0000; }
+    }
+    @keyframes textJump {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+    }
     .stButton > button {
         color: #ffffff;
-        background-color: #87CEEB; /* 天蓝色 */
+        background: linear-gradient(90deg, #00c6ff, #ff72ff);
         border: none;
         padding: 10px 20px;
         text-align: center;
@@ -850,37 +925,23 @@ st.markdown(
         margin: 6px 3px;
         cursor: pointer;
         border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -2px 5px rgba(255,255,255,0.2);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-    }
-    .stButton > button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: all 0.4s;
+        animation: glow 5s linear infinite;
     }
     .stButton > button:hover {
-        background-color: #5F9EA0; /* 深天蓝色 */
-        box-shadow: 0 6px 8px rgba(0,0,0,0.15), inset 0 -4px 9px rgba(0,0,0,0.2);
-        transform: translateY(-2px);
-    }
-    .stButton > button:hover::before {
-        left: 100%;
+        transform: scale(1.1);
+        box-shadow: 0 0 15px rgba(0, 198, 255, 0.7), 0 0 15px rgba(255, 114, 255, 0.7);
     }
     .stButton > button:active {
-        transform: translateY(1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1), inset 0 -1px 3px rgba(0,0,0,0.2);
+        transform: scale(0.95);
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 # 使用自定义样式的按钮
 if st.button("⚡开始计算⚡"):
@@ -1340,3 +1401,6 @@ if st.button("⚡开始计算⚡"):
         st.error(f"计算错误: {str(e)}")
     # 在所有主要内容之后关闭div
     st.markdown('</div>', unsafe_allow_html=True)
+
+
+
