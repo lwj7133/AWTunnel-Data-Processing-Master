@@ -15,6 +15,13 @@ import tempfile
 import json
 import html
 
+# 设置页面配置，使用苹果emoji作为图标
+st.set_page_config(
+    page_title="NACA0012翼型数据处理",
+    page_icon="✈️",  # 使用飞机emoji作为图标
+    layout="wide"
+)
+
 # 在主要内容之前添加以下代码
 font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'SimHei.ttf')
 mpl.font_manager.fontManager.addfont(font_path)  # 临时注册新的全局字体
@@ -958,6 +965,7 @@ if st.button("⚡开始计算⚡"):
         else:
             # 计算压强
             pressure = [p_atm + rho_water * g * h for h in delta_h_list]
+            p=pressure
             
             # 计算压力系数
             if v_inf == 0:
@@ -1057,12 +1065,12 @@ if st.button("⚡开始计算⚡"):
 
             # 准备数据
             x_normalized = [0] + [x / chord for x in x_coords] + [1]
-            cp_upper = [0] + [cp[0]] + cp[1:17] + [0]  # 包含(0,0)、前缘点和(1,0)
-            cp_lower = [0] + [cp[0]]+cp[17:] + [0]  # 包含(0,0)和(1,0)，但不包括前缘点
+            cp_upper1 = [0] + [cp[0]] + cp[1:17] + [0]  # 包含(0,0)、前缘点和(1,0)
+            cp_lower1 = [0] + [cp[0]]+cp[17:] + [0]  # 包含(0,0)和(1,0)，但不包括前缘点
 
             # 确保x和y的长度匹配
-            assert len(x_normalized) == len(cp_upper), f"上表面数长度不匹配: x={len(x_normalized)}, y={len(cp_upper)}"
-            assert len(x_normalized) == len(cp_lower), f"下表面数据长度不匹配: x={len(x_normalized)}, y={len(cp_lower)}"
+            assert len(x_normalized) == len(cp_upper1), f"上表面数长度不匹配: x={len(x_normalized)}, y={len(cp_upper1)}"
+            assert len(x_normalized) == len(cp_lower1), f"下表面数据长度不匹配: x={len(x_normalized)}, y={len(cp_lower1)}"
 
             # 创建图形
             fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), gridspec_kw={'height_ratios': [2, 3]})
@@ -1120,10 +1128,10 @@ if st.button("⚡开始计算⚡"):
                 normal_upper = normal_upper / np.linalg.norm(normal_upper)
                 
                 # 上表面
-                cp_vector = -normal_upper * cp_upper[i] * scale
+                cp_vector = -normal_upper * cp_upper1[i] * scale
                 
                 # 检查压力系数的正负
-                if cp_upper[i] > 0:
+                if cp_upper1[i] > 0:
                     # 压力系数为正，颠倒矢量方向
                     start_point = (x_data[i] - cp_vector[0], y_data_upper[i] - cp_vector[1])
                     end_point = (x_data[i], y_data_upper[i])
@@ -1139,9 +1147,9 @@ if st.button("⚡开始计算⚡"):
                           head_width=0.01, head_length=0.02, fc=color, ec=color, linewidth=2)
             
             # 处理下表面数据
-            for i in range(1, len(x_data)):
+            for i in range(2, len(x_data)):  # 改为从0开始
                 # 计算翼型表面的切线
-                if i < len(x_data) - 1:
+                if  i < len(x_data) - 1:
                     dx = x_data[i+1] - x_data[i-1]
                     dy_lower = y_data_lower[i+1] - y_data_lower[i-1]
                 else:
@@ -1157,10 +1165,10 @@ if st.button("⚡开始计算⚡"):
                 normal_lower = normal_lower / np.linalg.norm(normal_lower)
                 
                 # 下表面
-                cp_vector = normal_lower * cp_lower[i-1] * scale
+                cp_vector = normal_lower * cp_lower1[i] * scale
                 
                 # 检查压力系数的正负
-                if cp_lower[i-1] > 0:
+                if cp_lower1[i] > 0:
                     
                     start_point = (x_data[i] + cp_vector[0], y_data_lower[i] + cp_vector[1])
                     end_point = (x_data[i], y_data_lower[i])
@@ -1183,8 +1191,8 @@ if st.button("⚡开始计算⚡"):
             ax1.set_title('NACA 0012 压力系数分布矢量图')
             ax1.grid(True, linestyle=':', alpha=0.7)
             # 添加压力系数说明
-            ax1.text(0.05, 0.90, '蓝：负压力系数', color='b', transform=ax1.transAxes, verticalalignment='top')
-            ax1.text(0.05, 0.85, '红：正压力系数', color='r', transform=ax1.transAxes, verticalalignment='top')
+            ax1.text(0.05, 0.95, '蓝：负压力系数', color='b', transform=ax1.transAxes, verticalalignment='top', fontsize=20)
+            ax1.text(0.05, 0.85, '红：正压力系数', color='r', transform=ax1.transAxes, verticalalignment='top', fontsize=20)
 
             # 分段插值
             def piecewise_interpolation_upper(x, y):
@@ -1210,20 +1218,23 @@ if st.button("⚡开始计算⚡"):
 
             # 应用分段插值
             x_smooth = np.linspace(0, 1, 200)
-            cp_upper_smooth = piecewise_interpolation_upper(x_normalized, cp_upper)
-            cp_lower_smooth = piecewise_interpolation_lower(x_normalized, cp_lower)
+            cp_upper_smooth = piecewise_interpolation_upper(x_normalized, cp_upper1)
+            cp_lower_smooth = piecewise_interpolation_lower(x_normalized, cp_lower1)
 
             # 绘制光滑曲线
-            ax2.plot(x_smooth, cp_upper_smooth, 'b-', label="上翼面")
-            ax2.plot(x_smooth, cp_lower_smooth, 'r-', label="下翼面")
+            ax2.plot(x_smooth, cp_upper_smooth, 'b-', label="上翼面", linewidth=2)
+            ax2.plot(x_smooth, cp_lower_smooth, 'r-', label="下翼面", linewidth=2)
+            ax2.tick_params(axis='both', which='major', labelsize=16)  # 增大刻度字体
+            legend = ax2.legend(fontsize=24, markerscale=6.0, frameon=True, framealpha=1)  # 增大图例字体和整体大小
+            legend.get_frame().set_linewidth(2)  # 增加图例边框宽度
 
             # 绘制原始数据点
-            ax2.scatter(x_normalized[1:-1], cp_upper[1:-1], color='blue', s=30, zorder=5)
-            ax2.scatter(x_normalized[1:-1], cp_lower[1:-1], color='red', s=30, zorder=5)
+            ax2.scatter(x_normalized[1:-1], cp_upper1[1:-1], color='blue', s=30, zorder=5)
+            ax2.scatter(x_normalized[1:-1], cp_lower1[1:-1], color='red', s=30, zorder=5)
 
             # 绘制从原点到前缘点的直线
-            ax2.plot([x_normalized[0], x_normalized[1]], [cp_upper[0], cp_upper[1]], 'b-', linewidth=2)
-            ax2.plot([x_normalized[0], x_normalized[1]], [cp_upper[0], cp_upper[1]], color='purple', linewidth=2)
+            ax2.plot([x_normalized[0], x_normalized[1]], [cp_upper1[0], cp_upper1[1]], 'b-', linewidth=2)
+            ax2.plot([x_normalized[0], x_normalized[1]], [cp_upper1[0], cp_upper1[1]], color='purple', linewidth=2)
 
             # 设置坐标轴
             ax2.set_xlabel('x/c')
@@ -1290,6 +1301,9 @@ if st.button("⚡开始计算⚡"):
 
             # 绘制原始数据点
             ax.scatter(x_normalized, v_ratio, color='blue', s=30, zorder=5, label="原始数据点")
+
+            # 增大刻度字体大小
+            ax.tick_params(axis='both', which='major', labelsize=16)
             
             # 绘制从原点到前缘点的直线
             ax.plot([0, x_normalized[0]], [0, v_ratio[0]], 'b-', linewidth=2)
